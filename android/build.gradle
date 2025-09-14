@@ -72,6 +72,6 @@ dependencies {
   implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
   
   if (isNewArchitectureEnabled()) {
-    implementation project(":ReactAndroid")
+    implementation "com.facebook.react:react-android"
   }
 }
