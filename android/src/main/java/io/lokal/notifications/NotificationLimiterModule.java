@@ -4,6 +4,7 @@ import com.facebook.react.bridge.*;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.os.Build;
+import android.os.Bundle;
 import android.service.notification.StatusBarNotification;
 import androidx.annotation.RequiresApi;
 import java.util.*;

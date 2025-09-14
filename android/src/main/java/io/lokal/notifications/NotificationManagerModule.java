@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
+import android.os.Bundle;
 import android.service.notification.StatusBarNotification;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
@@ -332,7 +333,7 @@ public class NotificationManagerModule extends ReactContextBaseJavaModule {
             .setOnlyAlertOnce(false)
             .setStyle(new NotificationCompat.BigPictureStyle()
                 .bigPicture(bitmap)
-                .bigLargeIcon(null)); // Hide large icon when expanded
+                .bigLargeIcon((Bitmap) null)); // Hide large icon when expanded
 
         // Add timestamp for ordering
         long currentTime = System.currentTimeMillis();
