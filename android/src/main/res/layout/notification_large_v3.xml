@@ -2,6 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="256dp"
+    xmlns:tools="http://schemas.android.com/tools"
     android:background="@color/white">
 
     <!-- If i did not add this extra container,
@@ -21,7 +22,7 @@
         <RelativeLayout
             android:id="@+id/container"
             android:layout_width="match_parent"
-            android:layout_height="32dp"
+            android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_marginBottom="@dimen/notification_small_margin"
             android:layout_marginStart="@dimen/notification_start_margin"
@@ -40,17 +41,28 @@
 
             <TextView
                 android:id="@+id/title"
+                style="@style/TextAppearance.Compat.Notification.Title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_toStartOf="@+id/icon"
-                style="@style/TextAppearance.Compat.Notification.Title"
-                android:text="@string/title"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:layout_marginEnd="@dimen/notification_small_margin"
                 android:layout_alignParentStart="true"
-                android:layout_alignParentBottom="true"
-                android:textSize="14sp"/>
+                android:layout_marginTop="@dimen/notification_small_margin"
+                android:layout_marginEnd="@dimen/notification_small_margin"
+                android:layout_toStartOf="@+id/icon"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="@string/title"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/body"
+                style="@style/TextAppearance.Compat.Notification.Line2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/title"
+                android:layout_marginTop="@dimen/small_padding"
+                android:ellipsize="end"
+                android:maxLines="1"
+                tools:text="@string/description" />
 
         </RelativeLayout>
 
@@ -80,59 +92,13 @@
 
         </FrameLayout>
 
-        <RelativeLayout
-            android:id="@+id/share_container"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/singleImageContainer"
-            android:layout_marginTop="@dimen/notification_small_margin"
-            android:layout_marginBottom="@dimen/notification_small_margin"
-            android:weightSum="6"
-            android:visibility="gone">
+<!--        <ImageView-->
+<!--            android:id="@+id/notification_footer"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="@dimen/notification_small_margin"-->
+<!--            android:src="@color/colorAccent"-->
+<!--            android:layout_alignParentBottom="true" />-->
 
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/notification_small_margin"
-                android:src="@color/colorAccent"
-                android:layout_toStartOf="@id/share"
-                android:layout_centerVertical="true"/>
-
-            <TextView
-                android:id="@+id/share"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_toStartOf="@id/open_in_app"
-                android:text="@string/share"
-                style="@style/TextAppearance.Compat.Notification.Title"
-                android:clickable="true"
-                android:focusable="true"
-                android:paddingTop="@dimen/small_padding"
-                android:paddingBottom="@dimen/small_padding"
-                android:paddingStart="@dimen/large_margin"
-                android:paddingEnd="@dimen/large_margin"
-                android:layout_marginStart="@dimen/notification_start_margin"
-                android:textColor="@color/notification_share_text_color"/>
-
-            <TextView
-                android:id="@+id/open_in_app"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/open_in_app"
-                android:layout_marginEnd="@dimen/notification_start_margin"
-                android:layout_alignParentEnd="true"
-                style="@style/TextAppearance.Compat.Notification.Title"
-                android:layout_marginStart="@dimen/notification_start_margin"
-                android:textColor="@color/black"
-                android:padding="@dimen/small_padding"/>
-
-        </RelativeLayout>
-
-        <ImageView
-            android:id="@+id/notification_footer"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/notification_small_margin"
-            android:src="@color/colorAccent"
-            android:layout_alignParentBottom="true" />
 
     </RelativeLayout>
 

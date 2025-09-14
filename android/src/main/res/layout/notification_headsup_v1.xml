@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<RelativeLayout android:id="@+id/container"
+<RelativeLayout
+    android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="64dp"
     android:orientation="horizontal"
@@ -8,7 +9,7 @@
     android:background="@color/white">
 
     <!-- If i did not add this extra container,
-     in some devices(Realme2) notification background is not getting set to white -->
+    in some devices(Realme2) notification background is not getting set to white -->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -25,12 +26,12 @@
             android:id="@+id/icon"
             android:layout_width="@dimen/notification_thumb_width"
             android:layout_height="@dimen/notification_thumb_height"
-            android:src="@drawable/placeholder_image"
-            android:scaleType="fitCenter"
             android:layout_alignParentEnd="true"
+            android:layout_marginTop="@dimen/large_margin"
+            android:layout_marginEnd="5dp"
             android:adjustViewBounds="true"
-            android:layout_marginTop="@dimen/notification_large_margin"
-            android:layout_marginEnd="@dimen/notification_start_margin"/>
+            android:scaleType="fitCenter"
+            android:src="@drawable/placeholder_image" />
 
         <TextView
             android:id="@+id/title"
@@ -39,18 +40,18 @@
             android:layout_below="@id/notification_header"
             style="@style/TextAppearance.Compat.Notification.Title"
             android:layout_alignParentStart="true"
-            android:layout_toStartOf="@+id/icon"
-            android:layout_marginTop="@dimen/notification_small_margin"
-            android:layout_marginStart="@dimen/notification_start_margin"
+            android:layout_toStartOf="@id/icon"
+            android:layout_marginTop="@dimen/small_padding"
+            android:layout_marginStart="@dimen/margin_between"
             android:text="@string/title"
             android:maxLines="1"
             android:ellipsize="end"
-            android:layout_marginEnd="@dimen/notification_small_margin"
+            android:layout_marginEnd="@dimen/small_padding"
             android:textSize="@dimen/notification_title_text_size"/>
 
         <ImageView
             android:layout_width="match_parent"
-            android:layout_height="@dimen/notification_small_margin"
+            android:layout_height="@dimen/small_padding"
             android:src="@color/colorAccent"
             android:layout_alignParentBottom="true" />
 

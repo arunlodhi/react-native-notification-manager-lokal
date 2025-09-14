@@ -35,6 +35,7 @@ export interface NotificationData {
   postId?: string;
   reporterID?: number;
   userId?: number;
+  timestamp?: number; // Unix timestamp when notification was created
 }
 
 export interface MoEngageNotificationData {

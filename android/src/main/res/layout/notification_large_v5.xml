@@ -1,47 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <LinearLayout
-        android:id="@+id/title1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_marginStart="@dimen/dp_12"
-        android:layout_marginEnd="@dimen/dp_12"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:layout_centerVertical="true">
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <TextView
         android:id="@+id/title"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/title"
+        android:minHeight="@dimen/notification_image_height_small"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginStart="@dimen/dp_12"
+        android:layout_marginEnd="@dimen/dp_12"
+        android:gravity="center_vertical"
         android:maxLines="2"
         android:ellipsize="end"
-        style="@style/NotificationTitleStyleV5" />
-
-    <TextView
-        android:id="@+id/body"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        style="@style/TextAppearance.Compat.Notification.Line2"
-        android:text="@string/description"
-        android:maxLines="1"
-        android:textColor="@color/c_3ea2f4"
-        android:ellipsize="end"
-        />
-    </LinearLayout>
+        style="@style/NotificationTitleStyleV5"/>
 
     <FrameLayout
         android:id="@+id/singleImageContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="@dimen/dp_12"
-        android:layout_below="@id/title1">
+        android:layout_below="@id/title">
 
         <ImageView
             android:id="@+id/blurr_view"

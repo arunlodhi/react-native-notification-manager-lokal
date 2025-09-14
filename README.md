@@ -1,756 +1,510 @@
-# React Native Notification Port
+# React Native Notification Manager - Lokal
 
-A complete React Native port of the Android notification functionality from the Lokal app, maintaining **exactly the same logic** for notification ordering, re-pushing to top, limiting, and device-specific handling.
+A complete React Native port of Android notification functionality with exact same logic for ordering, re-pushing to top, and device-specific handling. This package provides production-ready notification management with comprehensive features matching the native Android implementation.
 
 ## Features
 
-✅ **Exact Android Logic Port**: All notification management logic ported 1:1 from Android  
-✅ **Notification Ordering**: Timestamp-based sorting (newest first)  
-✅ **Re-pushing to Top**: Periodic refresh every 15 minutes to keep notifications visible  
-✅ **Notification Limiting**: Configurable limits with oldest notification removal  
-✅ **Device-Specific Handling**: Special logic for Xiaomi devices  
-✅ **Notification Recreation**: Complete recreation with fresh timestamps  
-✅ **Group Management**: Support for grouped notifications  
-✅ **Analytics Integration**: Built-in analytics event tracking  
-✅ **Deep Linking**: Click/impression events passed to React Native
+- ✅ **Exact Android Logic Port**: Maintains identical notification behavior as native Android
+- ✅ **Remote Configuration**: Flexible configuration management with caching
+- ✅ **Analytics Integration**: Comprehensive tracking and crash reporting
+- ✅ **Database Persistence**: Local storage for notification data and state
+- ✅ **Notification Limiting**: Smart notification management with timestamp-based ordering
+- ✅ **Notification Refresh**: Keep notifications at top with device-specific optimizations
+- ✅ **Multiple Notification Types**: Support for regular, cricket, quiz, and comment notifications
+- ✅ **Grouping Support**: Advanced notification grouping with summary notifications
+- ✅ **Device Optimization**: Special handling for Xiaomi and other manufacturers
+- ✅ **TypeScript Support**: Full type safety with comprehensive interfaces
+- ✅ **Production Ready**: Error handling, logging, and crash reporting built-in
 
 ## Installation
 
 ```bash
 npm install react-native-notification-manager-lokal
+# or
+yarn add react-native-notification-manager-lokal
 ```
 
-### Android Setup
+### Dependencies
 
-**✅ Autolinking Support**: This module supports React Native autolinking (0.60+) and new architecture. No manual linking required!
+This package requires the following peer dependencies:
 
-#### Step 1: Install Dependencies (Optional)
-
-The module automatically includes required dependencies, but you can add these to your `android/app/build.gradle` if you need specific versions:
-
-```gradle
-// android/app/build.gradle (optional - already included in the module)
-dependencies {
-  // Image loading (already included)
-  // implementation 'com.github.bumptech.glide:glide:4.14.2'
-  // implementation 'jp.wasabeef:glide-transformations:4.3.0'
-}
+```bash
+npm install @react-native-async-storage/async-storage
 ```
-
-#### Step 2: Permissions (Automatic)
-
-The module automatically adds required permissions via its AndroidManifest.xml:
-
-- `android.permission.VIBRATE`
-- `android.permission.WAKE_LOCK`
-- `android.permission.RECEIVE_BOOT_COMPLETED`
-- `android.permission.SCHEDULE_EXACT_ALARM`
-- `android.permission.POST_NOTIFICATIONS`
-
-#### Step 3: Receivers (Automatic)
-
-The module automatically registers required broadcast receivers:
-
-- `NotificationClickReceiver` - Handles notification clicks
-- `LocalNotificationReceiver` - Handles local notifications
-
-**That's it! No manual setup required.** 🎉
 
 ## Quick Start
 
+### 1. Initialize with Simple Remote Config (Recommended)
+
 ```typescript
 import {
-  NotificationManager,
-  initializeNotifications,
+  UserRemoteConfig,
+  initializeSimpleRemoteConfig,
   createNotification,
-  createNotificationWithImage,
 } from "react-native-notification-manager-lokal";
 
-// Initialize the notification system
-await initializeNotifications();
+// Define your notification configuration with full TypeScript support
+const myConfig: UserRemoteConfig = {
+  notificationVersion: 6, // Use latest layouts
+  notificationKeepAtTop: true, // Keep notifications at top
+  notificationLimit: 15, // Show max 15 notifications
+  isCricketNotificationActive: true, // Enable cricket scores
+  isCommentNotificationActive: true, // Enable comments
+};
 
-// Set up event callbacks for analytics and deep linking
-NotificationManager.getInstance().setEventCallbacks({
-  onNotificationClick: (data) => {
-    // Handle deep linking
-    console.log("Notification clicked:", data);
-    // Navigate to appropriate screen based on data.uri
-  },
-  onNotificationDismiss: (notificationId) => {
-    // Track dismissal analytics
-    console.log("Notification dismissed:", notificationId);
-  },
-  onNotificationReceived: (data) => {
-    // Track impression analytics
-    console.log("Notification received:", data);
-  },
-});
+// Initialize with your typed config object
+await initializeSimpleRemoteConfig(myConfig);
+```
+
+### 1b. Advanced Setup (Optional)
+
+```typescript
+import {
+  initializeRemoteConfig,
+  initializeAnalytics,
+} from "react-native-notification-manager-lokal";
+
+// Optional: Set up with custom remote config provider
+await initializeRemoteConfig(yourRemoteConfigProvider);
+
+// Optional: Set up analytics and crash reporting
+initializeAnalytics(yourAnalyticsProvider, yourCrashReportingProvider);
+```
+
+### 2. Create Basic Notifications
+
+```typescript
+import { createNotification } from "react-native-notification-manager-lokal";
 
 // Create a simple notification
 await createNotification(
-  12345, // id
+  1, // id
   "Breaking News", // title
-  "Important update...", // body
-  "1", // categoryId
+  "Important update available", // body
+  "news", // categoryId
   "News", // categoryName
-  "/article/12345", // uri for deep linking
+  "https://example.com/article/123", // uri
   "ACTION_PUSH", // action
   "news_tag" // tag
 );
+```
 
-// Create notification with image
+### 3. Create Notifications with Images
+
+```typescript
+import { createNotificationWithImage } from "react-native-notification-manager-lokal";
+
 await createNotificationWithImage(
-  12346, // id
+  2, // id
   "https://example.com/image.jpg", // imageUrl
-  "Photo News", // title
-  "Check out this image", // body
-  "1", // categoryId
-  "News", // categoryName
-  "/article/12346", // uri
+  "Sports Update", // title
+  "Match results are in!", // body
+  "sports", // categoryId
+  "Sports", // categoryName
+  "https://example.com/match/456", // uri
   "ACTION_PUSH", // action
-  "photo_tag" // tag
+  "sports_tag" // tag
 );
-```
-
-## Architecture
-
-The module uses a **simplified architecture** to avoid duplication:
-
-### **React Native Layer (TypeScript):**
-
-- **NotificationManager**: Main interface for all notification operations
-- **LocalNotificationManager**: Handles local/scheduled notifications
-- **NotificationRefreshAlarmManager**: Manages periodic refresh scheduling
-- **Types & Interfaces**: TypeScript definitions and callbacks
-
-### **Native Layer (Android Java):**
-
-- **NotificationManagerModule**: Single native module handling all core functionality
-- **LocalNotificationManagerModule**: Handles local notification scheduling
-- **NotificationRefreshAlarmManagerModule**: Manages alarm-based refresh
-- **NotificationClickReceiver**: Handles notification click events
-- **NotificationManagerPackage**: React Native package registration
-
-### **Key Design Principles:**
-
-- ✅ **Single Responsibility**: Each module has one clear purpose
-- ✅ **No Duplication**: Logic exists in one place (native layer)
-- ✅ **Clean Interface**: TypeScript layer provides clean API
-- ✅ **Exact Android Logic**: All Android logic preserved in native modules
-
-## Core Components
-
-### NotificationManager
-
-Main entry point for all notification functionality.
-
-```typescript
-import {
-  NotificationManager,
-  initializeNotifications,
-  createNotification,
-  createNotificationWithImage,
-  refreshNotifications,
-  limitNotifications,
-} from "react-native-notification-manager-lokal";
-
-// Initialize (convenience function)
-await initializeNotifications();
-
-// Or use the manager directly
-const manager = NotificationManager.getInstance();
-await manager.initialize();
-
-// Create notifications (convenience functions)
-await createNotification(
-  id,
-  title,
-  body,
-  categoryId,
-  categoryName,
-  uri,
-  action,
-  tag
-);
-await createNotificationWithImage(
-  id,
-  imageUrl,
-  title,
-  body,
-  categoryId,
-  categoryName,
-  uri,
-  action,
-  tag
-);
-
-// Or use manager methods
-await manager.createNotification(/* parameters */);
-await manager.createNotificationWithImage(/* parameters */);
-
-// Management operations
-await refreshNotifications(); // Re-push to top
-await limitNotifications(); // Apply limits
-await manager.cancelNotification(id); // Cancel specific notification
-```
-
-### Local Notifications
-
-```typescript
-import {
-  scheduleLocalNotification,
-  cancelLocalNotification,
-  getScheduledLocalNotifications,
-} from "react-native-notification-manager-lokal";
-
-// Schedule a local notification
-await scheduleLocalNotification(
-  123, // id
-  "Reminder", // title
-  "Don't forget!", // body
-  Date.now() + 60000, // scheduledTime (1 minute from now)
-  { customData: "value" } // optional data
-);
-
-// Cancel a scheduled notification
-await cancelLocalNotification(123);
-
-// Get all scheduled notifications
-const scheduled = await getScheduledLocalNotifications();
-```
-
-### Periodic Refresh
-
-```typescript
-import {
-  scheduleNotificationRefresh,
-  cancelNotificationRefresh,
-} from "react-native-notification-manager-lokal";
-
-// Start periodic refresh (every 15 minutes)
-await scheduleNotificationRefresh();
-
-// Stop periodic refresh
-await cancelNotificationRefresh();
 ```
 
 ## Advanced Usage
 
-### Custom Notification Configuration
+### Remote Configuration
 
-```typescript
-await manager.createNotification(
-  id,
-  title,
-  body,
-  categoryId,
-  categoryName,
-  uri,
-  action,
-  tag,
-  "CustomChannel", // channel
-  Constants.IMPORTANCE_MAX, // importance
-  true, // isGroupingNeeded
-  123, // groupID
-  "video", // notifType
-  true, // isPersonalized
-  {
-    onNotificationBuilt: (bundle) => {
-      // Analytics callback
-      console.log("Notification built:", bundle);
-    },
-  }
-);
-```
-
-### Notification Recreation
-
-```typescript
-import { NotificationReCreator } from "react-native-notification-manager-lokal";
-
-const recreator = NotificationReCreator.getInstance();
-
-// Convert stored data to payload
-const payload = recreator.convertToNotificationPayload(notificationData);
-
-// Recreate notification
-await recreator.createNotification(payload);
-```
-
-### Local Notifications
+Set up remote configuration to control notification behavior dynamically:
 
 ```typescript
 import {
-  LocalNotificationManager,
-  scheduleLocalNotification,
+  initializeRemoteConfig,
+  setRemoteConfigValues,
+  RemoteConfigProvider,
 } from "react-native-notification-manager-lokal";
 
-// Schedule a local notification
-await scheduleLocalNotification(
-  123, // id
-  "Reminder", // title
-  "Don't forget!", // body
-  Date.now() + 60000, // scheduledTime (1 minute from now)
-  { customData: "value" } // optional data
-);
-```
-
-## Configuration
-
-### Remote Config Integration
-
-The system uses several remote config flags that match the Android implementation:
-
-```typescript
-// These should be implemented in your remote config system
-const remoteConfigKeys = {
-  NOTIFICATION_KEEP_AT_TOP: "notification_keep_at_top",
-  NOTIFICATION_LIMIT: "notification_limit",
-  NOTIFICATION_UNLOCK_AT_TOP_LIMIT: "notification_unlock_at_top_limit",
-  NOTIFICATION_UNLOCK_AT_TOP_TIMEOUT_MS:
-    "notification_unlock_at_top_timeout_ms",
+// Option 1: Use your own remote config provider (Firebase, etc.)
+const myRemoteConfigProvider: RemoteConfigProvider = {
+  async initialize() {
+    // Initialize your remote config
+  },
+  async getBoolean(key, defaultValue) {
+    // Return boolean value from your remote config
+    return yourRemoteConfig.getBoolean(key) ?? defaultValue;
+  },
+  async getNumber(key, defaultValue) {
+    // Return number value from your remote config
+    return yourRemoteConfig.getNumber(key) ?? defaultValue;
+  },
+  async getString(key, defaultValue) {
+    // Return string value from your remote config
+    return yourRemoteConfig.getString(key) ?? defaultValue;
+  },
+  async fetchAndActivate() {
+    // Fetch latest config values
+    return await yourRemoteConfig.fetchAndActivate();
+  },
 };
-```
 
-### Constants
+await initializeRemoteConfig(myRemoteConfigProvider);
 
-All constants from the Android implementation are available:
-
-```typescript
-import { Constants } from "react-native-notification-manager-lokal";
-
-// Notification priorities
-Constants.IMPORTANCE_MAX;
-Constants.IMPORTANCE_HIGH;
-Constants.IMPORTANCE_DEFAULT;
-
-// Channels
-Constants.DEFAULT_CHANNEL;
-Constants.CRICKET_CHANNEL;
-Constants.COMMENTS_CHANNEL;
-
-// Actions
-Constants.ACTION_PUSH;
-Constants.ACTION_PUSH_VIDEO;
-Constants.ACTION_PUSH_CRICKET;
-
-// And many more...
-```
-
-## Event Handling
-
-### Analytics Integration
-
-```typescript
-NotificationManager.getInstance().setEventCallbacks({
-  onNotificationClick: (data) => {
-    // Track click analytics
-    analytics.track("notification_clicked", {
-      notification_id: data.notificationId,
-      category_id: data.categoryId,
-      post_id: data.postId,
-      uri: data.uri,
-    });
-
-    // Handle deep linking
-    navigation.navigate("Article", { id: data.postId });
-  },
-
-  onNotificationReceived: (data) => {
-    // Track impression analytics
-    analytics.track("notification_received", {
-      notification_id: data.notificationId,
-      category_id: data.categoryId,
-    });
-  },
+// Option 2: Set values manually (useful for testing)
+setRemoteConfigValues({
+  notification_keep_at_top: true,
+  notification_limit: 10,
+  notification_unlock_at_top_timeout_ms: 300000,
+  is_notification_grouping_active: true,
 });
 ```
 
-### Deep Linking
+### Analytics Integration
+
+Track notification events with your analytics provider:
 
 ```typescript
-const handleNotificationClick = (data) => {
-  const { uri, action, categoryId } = data;
+import {
+  initializeAnalytics,
+  AnalyticsProvider,
+  CrashReportingProvider,
+} from "react-native-notification-manager-lokal";
 
-  if (action === Constants.ACTION_PUSH) {
-    // Handle article navigation
-    if (uri.includes("/article/")) {
-      const articleId = uri.split("/").pop();
-      navigation.navigate("Article", { id: articleId });
-    }
-  } else if (action === Constants.ACTION_PUSH_VIDEO) {
-    // Handle video navigation
-    navigation.navigate("Video", { uri });
-  }
-  // Add more action handlers as needed
+const analyticsProvider: AnalyticsProvider = {
+  trackEvent(eventName, properties) {
+    // Track event with your analytics service
+    yourAnalytics.track(eventName, properties);
+  },
+  trackCategoryEvent(eventName, category, properties) {
+    // Track category-specific events
+    yourAnalytics.track(eventName, { category, ...properties });
+  },
+  trackConversionEvent(source, action, properties) {
+    // Track conversion events
+    yourAnalytics.track("conversion", { source, action, ...properties });
+  },
+  setUserProperties(properties) {
+    yourAnalytics.setUserProperties(properties);
+  },
+  setUserId(userId) {
+    yourAnalytics.setUserId(userId);
+  },
 };
+
+const crashReportingProvider: CrashReportingProvider = {
+  recordException(error) {
+    yourCrashlytics.recordError(error);
+  },
+  log(message) {
+    yourCrashlytics.log(message);
+  },
+  setCustomKey(key, value) {
+    yourCrashlytics.setCustomKey(key, value);
+  },
+  setUserId(userId) {
+    yourCrashlytics.setUserId(userId);
+  },
+};
+
+initializeAnalytics(analyticsProvider, crashReportingProvider);
 ```
 
-## Complete Integration Example
+### Cricket Notifications
 
-Here's a complete example of how to integrate the notification system into your React Native app:
-
-### App.tsx
+Create live cricket score notifications:
 
 ```typescript
-import React, { useEffect } from "react";
-import { NavigationContainer } from "@react-navigation/native";
-import {
-  NotificationManager,
-  initializeNotifications,
-  scheduleNotificationRefresh,
-} from "react-native-notification-manager-lokal";
-import analytics from "@react-native-firebase/analytics";
-import crashlytics from "@react-native-firebase/crashlytics";
+import { createCricketNotification } from "react-native-notification-manager-lokal";
 
-export default function App() {
-  useEffect(() => {
-    setupNotifications();
-  }, []);
-
-  const setupNotifications = async () => {
-    try {
-      // Initialize the notification system
-      await initializeNotifications();
-
-      // Set up event callbacks
-      NotificationManager.getInstance().setEventCallbacks({
-        onNotificationClick: (data) => {
-          // Track analytics
-          analytics().logEvent("notification_clicked", {
-            notification_id: data.notificationId,
-            category_id: data.categoryId,
-            action: data.action,
-            uri: data.uri,
-          });
-
-          // Handle deep linking
-          handleDeepLink(data.uri, data.action);
-        },
-
-        onNotificationReceived: (data) => {
-          // Track impression
-          analytics().logEvent("notification_received", {
-            notification_id: data.notificationId,
-            category_id: data.categoryId,
-          });
-        },
-
-        onNotificationDismiss: (notificationId) => {
-          analytics().logEvent("notification_dismissed", {
-            notification_id: notificationId,
-          });
-        },
-
-        onAnalyticsEvent: (eventName, eventType, properties) => {
-          analytics().logEvent(eventName, properties);
-        },
-
-        onError: (error) => {
-          crashlytics().recordError(error);
-          console.error("Notification error:", error);
-        },
-      });
-
-      // Start periodic refresh (every 15 minutes)
-      await scheduleNotificationRefresh();
-
-      console.log("Notification system initialized successfully");
-    } catch (error) {
-      console.error("Failed to initialize notifications:", error);
-      crashlytics().recordError(error);
-    }
-  };
-
-  const handleDeepLink = (uri: string, action: string) => {
-    if (!uri) return;
-
-    // Handle different types of deep links
-    if (uri.includes("/article/")) {
-      const articleId = uri.split("/").pop();
-      // Navigate to article screen
-      // navigation.navigate('Article', { id: articleId });
-    } else if (uri.includes("/video/")) {
-      const videoId = uri.split("/").pop();
-      // Navigate to video screen
-      // navigation.navigate('Video', { id: videoId });
-    } else if (uri.includes("/job/")) {
-      const jobId = uri.split("/").pop();
-      // Navigate to job screen
-      // navigation.navigate('Job', { id: jobId });
-    }
-  };
-
-  return <NavigationContainer>{/* Your app navigation */}</NavigationContainer>;
-}
+await createCricketNotification(
+  "INPROGRESS", // matchState
+  "India", // team1Name
+  "Australia", // team2Name
+  "IND", // team1ShortName
+  "AUS", // team2ShortName
+  "https://example.com/team1.png", // team1IconUrl
+  "https://example.com/team2.png", // team2IconUrl
+  "2nd Innings", // matchStatus
+  "Melbourne Cricket Ground", // venue
+  "250", // team1Score
+  "4", // team1Wickets
+  "45.2", // team1Overs
+  "180", // team2Score
+  "8", // team2Wickets
+  "35.4" // team2Overs
+);
 ```
 
-### Creating Notifications in Your Service
+### Comment Notifications
+
+Create grouped comment notifications:
 
 ```typescript
-// NotificationService.ts
 import {
-  createNotification,
-  createNotificationWithImage,
-  Constants,
+  createCommentNotification,
+  CommentNotificationType,
 } from "react-native-notification-manager-lokal";
 
-export class NotificationService {
-  static async createNewsNotification(newsData: any) {
-    try {
-      if (newsData.imageUrl) {
-        await createNotificationWithImage(
-          newsData.id,
-          newsData.imageUrl,
-          newsData.title,
-          newsData.summary,
-          newsData.categoryId,
-          newsData.categoryName,
-          `/article/${newsData.id}`,
-          Constants.ACTION_PUSH,
-          `news_${newsData.id}`,
-          {
-            onNotificationBuilt: (bundle) => {
-              console.log("News notification created:", bundle);
-            },
-          }
-        );
-      } else {
-        await createNotification(
-          newsData.id,
-          newsData.title,
-          newsData.summary,
-          newsData.categoryId,
-          newsData.categoryName,
-          `/article/${newsData.id}`,
-          Constants.ACTION_PUSH,
-          `news_${newsData.id}`,
-          {
-            onNotificationBuilt: (bundle) => {
-              console.log("News notification created:", bundle);
-            },
-          }
-        );
-      }
-    } catch (error) {
-      console.error("Failed to create news notification:", error);
-    }
-  }
-
-  static async createJobNotification(jobData: any) {
-    await createNotification(
-      jobData.id,
-      `New Job: ${jobData.title}`,
-      `${jobData.company} - ${jobData.location}`,
-      "2", // Jobs category
-      "Jobs",
-      `/job/${jobData.id}`,
-      Constants.ACTION_PUSH,
-      `job_${jobData.id}`
-    );
-  }
-
-  static async createVideoNotification(videoData: any) {
-    await createNotificationWithImage(
-      videoData.id,
-      videoData.thumbnail,
-      videoData.title,
-      videoData.description,
-      videoData.categoryId,
-      "Videos",
-      `/video/${videoData.id}`,
-      Constants.ACTION_PUSH_VIDEO,
-      `video_${videoData.id}`
-    );
-  }
-}
+await createCommentNotification(
+  "New Comments", // title
+  "John commented on your post", // body
+  CommentNotificationType.COMMENT, // notificationType
+  "instant", // notificationInterval
+  "post_123", // postId
+  456, // reporterId
+  "user_789", // userId
+  1, // postCount
+  3, // commentsCount
+  true // isGrouped
+);
 ```
 
-## Troubleshooting
+### Quiz Notifications
 
-### Common Issues
-
-#### 1. Notifications Not Appearing
-
-**Problem**: Notifications are created but don't appear on the device.
-
-**Solutions**:
-
-- Check if notification permissions are granted
-- Verify notification channels are created properly
-- Ensure the app is not in battery optimization mode (especially on Xiaomi devices)
+Create interactive quiz notifications:
 
 ```typescript
-// Check notification permissions
-const manager = NotificationManager.getInstance();
-const notifications = await manager.getActiveNotifications();
-console.log("Active notifications:", notifications.length);
+import { createQuizNotification } from "react-native-notification-manager-lokal";
+
+await createQuizNotification(
+  3, // id
+  "https://example.com/quiz-image.jpg", // imageUrl
+  "Daily Quiz", // title
+  "Test your knowledge!", // body
+  "quiz", // categoryId
+  "Quiz", // categoryName
+  "https://example.com/quiz/daily", // uri
+  "ACTION_PUSH_QUIZ", // action
+  "quiz_tag", // tag
+  "Quiz", // channel
+  5 // importance
+);
 ```
 
-#### 2. Images Not Loading
+### Database Operations
 
-**Problem**: Notifications with images show without the image.
-
-**Solutions**:
-
-- Verify Glide dependencies are added to build.gradle
-- Check if image URLs are accessible
-- Ensure proper internet permissions
-
-```gradle
-// Make sure these are in your build.gradle
-implementation 'com.github.bumptech.glide:glide:4.14.2'
-implementation 'jp.wasabeef:glide-transformations:4.3.0'
-```
-
-#### 3. Click Events Not Working
-
-**Problem**: Notification clicks don't trigger the callback.
-
-**Solutions**:
-
-- Verify NotificationClickReceiver is registered in AndroidManifest.xml
-- Check if event callbacks are set before notifications are created
-- Ensure the app is properly handling the React Native bridge
-
-```xml
-<!-- Verify this is in your AndroidManifest.xml -->
-<receiver
-  android:name="io.lokal.notifications.NotificationClickReceiver"
-  android:exported="false" />
-```
-
-#### 4. Periodic Refresh Not Working
-
-**Problem**: Notifications don't refresh every 15 minutes.
-
-**Solutions**:
-
-- Check if SCHEDULE_EXACT_ALARM permission is granted
-- Verify the device allows background processing
-- Check battery optimization settings
+Access notification data and statistics:
 
 ```typescript
-// Start periodic refresh manually
-import { scheduleNotificationRefresh } from "react-native-notification-manager-lokal";
-await scheduleNotificationRefresh();
+import {
+  DatabaseManager,
+  getTodayNotifications,
+  getNotificationBadgeCount,
+  cleanOldNotifications,
+} from "react-native-notification-manager-lokal";
+
+// Get today's notifications
+const todayNotifications = await getTodayNotifications();
+
+// Get unread notification count
+const badgeCount = await getNotificationBadgeCount();
+
+// Clean old notifications (older than 7 days)
+await cleanOldNotifications();
+
+// Get database statistics
+const stats = await DatabaseManager.getInstance().getDatabaseStats();
+console.log("Database stats:", stats);
 ```
 
-#### 5. TypeScript Errors
+### Event Handling
 
-**Problem**: TypeScript compilation errors.
-
-**Solutions**:
-
-- Ensure all peer dependencies are installed
-- Check if @types/react-native is compatible
-- Verify the module is properly imported
-
-```bash
-npm install --save-dev @types/react @types/react-native
-```
-
-### Device-Specific Issues
-
-#### Xiaomi Devices
-
-Xiaomi devices have aggressive battery optimization. Users need to:
-
-1. Go to Settings > Apps > [Your App] > Battery saver > No restrictions
-2. Go to Settings > Apps > [Your App] > Autostart > Enable
-3. Go to Settings > Apps > [Your App] > Other permissions > Display pop-up windows while running in background
-
-#### OnePlus Devices
-
-OnePlus devices may kill background processes:
-
-1. Go to Settings > Apps > [Your App] > Battery > Battery optimization > Don't optimize
-2. Go to Settings > Apps > [Your App] > App permissions > Allow all permissions
-
-### Debug Mode
-
-Enable debug logging to troubleshoot issues:
+Listen to notification events:
 
 ```typescript
-// Add this to see detailed logs
 import { NotificationManager } from "react-native-notification-manager-lokal";
 
 const manager = NotificationManager.getInstance();
 
-// This will log all notification operations
 manager.setEventCallbacks({
   onNotificationClick: (data) => {
-    console.log("[DEBUG] Notification clicked:", JSON.stringify(data, null, 2));
+    console.log("Notification clicked:", data);
+    // Handle notification click
+  },
+  onNotificationDismiss: (notificationId) => {
+    console.log("Notification dismissed:", notificationId);
+    // Handle notification dismissal
   },
   onNotificationReceived: (data) => {
-    console.log(
-      "[DEBUG] Notification received:",
-      JSON.stringify(data, null, 2)
-    );
-  },
-  onError: (error) => {
-    console.error("[DEBUG] Notification error:", error);
+    console.log("Notification received:", data);
+    // Handle notification received
   },
 });
 ```
 
+## Configuration Options
+
+### Remote Config Keys
+
+The package supports the following remote configuration keys:
+
+```typescript
+// Notification behavior
+notification_keep_at_top: boolean; // Keep notifications at top
+notification_limit: number; // Maximum number of notifications
+notification_unlock_at_top_timeout_ms: number; // Refresh timeout
+notification_unlock_at_top_limit: number; // Refresh limit
+is_notification_grouping_active: boolean; // Enable grouping
+notification_version: number; // UI version
+is_notification_ingestion_enabled: boolean; // Analytics ingestion
+
+// Cricket notifications
+is_cricket_notification_active: boolean;
+cricket_notification_interval: number;
+
+// Comment notifications
+is_comment_notification_active: boolean;
+comment_notification_grouping: boolean;
+
+// Sticky notifications
+is_sticky_notification_active: boolean;
+sticky_notification_time_interval: number;
+notification_max_cancel_count: number;
+```
+
+### Notification Channels
+
+Default channels are automatically created:
+
+- `Recommendation` - High importance, general notifications
+- `Cricket` - Low importance, cricket updates
+- `Comments` - Low importance, comment notifications
+- `Downloads` - Low importance, download progress
+- `Uploads` - Low importance, upload progress
+
+## API Reference
+
+### Core Functions
+
+#### `initializeNotifications(): Promise<void>`
+
+Initialize the notification manager.
+
+#### `createNotification(id, title, body, categoryId, categoryName, uri, action, tag, callbacks?): Promise<void>`
+
+Create a basic notification without image.
+
+#### `createNotificationWithImage(id, imageUrl, title, body, categoryId, categoryName, uri, action, tag, callbacks?): Promise<void>`
+
+Create a notification with image.
+
+#### `cancelNotification(notificationId): Promise<void>`
+
+Cancel a notification by ID.
+
+#### `refreshNotifications(): Promise<void>`
+
+Refresh notifications to keep them at top.
+
+#### `limitNotifications(): Promise<void>`
+
+Apply notification limiting based on configuration.
+
+### Specialized Notifications
+
+#### `createCricketNotification(...args): Promise<void>`
+
+Create cricket score notification.
+
+#### `createQuizNotification(...args): Promise<void>`
+
+Create quiz notification.
+
+#### `createCommentNotification(...args): Promise<void>`
+
+Create comment notification.
+
+### Configuration
+
+#### `initializeRemoteConfig(provider?): Promise<void>`
+
+Initialize remote configuration.
+
+#### `setRemoteConfigValues(values): void`
+
+Set remote config values manually.
+
+### Analytics
+
+#### `initializeAnalytics(analyticsProvider?, crashReportingProvider?): void`
+
+Initialize analytics and crash reporting.
+
+#### `trackNotificationBuilt(category, properties): void`
+
+Track notification built event.
+
+#### `trackNotificationClicked(source, properties): void`
+
+Track notification clicked event.
+
+### Database
+
+#### `getTodayNotifications(): Promise<NotificationData[]>`
+
+Get notifications from last 24 hours.
+
+#### `getNotificationBadgeCount(): Promise<number>`
+
+Get unread notification count.
+
+#### `cleanOldNotifications(): Promise<void>`
+
+Clean notifications older than 7 days.
+
+## TypeScript Support
+
+The package includes comprehensive TypeScript definitions:
+
+```typescript
+import {
+  NotificationPayload,
+  NotificationData,
+  RemoteConfigProvider,
+  AnalyticsProvider,
+  CrashReportingProvider,
+  CricketNotificationData,
+  CommentNotificationData,
+  NotificationCallbacks,
+} from "react-native-notification-manager-lokal";
+```
+
+## Error Handling
+
+The package includes comprehensive error handling:
+
+- All methods include try-catch blocks
+- Errors are logged to console and crash reporting
+- Graceful fallbacks for missing dependencies
+- Network failure resilience
+
 ## Performance Considerations
 
-### Memory Management
+- Notifications are limited based on configuration to prevent memory issues
+- Old notifications are automatically cleaned up
+- Database operations are optimized with caching
+- Device-specific optimizations for better performance
 
-The notification system automatically manages memory by:
+## Platform Support
 
-- Limiting active notifications (configurable via remote config)
-- Cleaning up old notification data
-- Using efficient image caching with Glide
+- ✅ Android (Full support with native module)
+- ⚠️ iOS (Limited support, basic functionality only)
 
-### Battery Optimization
+## Contributing
 
-To minimize battery usage:
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-- Notifications are batched when possible
-- Periodic refresh uses exact alarms only when necessary
-- Image loading is optimized with caching
+## License
 
-### Network Usage
-
-- Images are cached after first load
-- Blur transformations are cached
-- Network requests are minimized through intelligent caching
-
-## Migration from Android
-
-If you're migrating from the existing Android notification system:
-
-1. **Keep existing logic**: All Android logic is preserved exactly
-2. **Update imports**: Change from Android imports to React Native imports
-3. **Add event callbacks**: Set up analytics and deep linking callbacks
-4. **Test thoroughly**: Verify all notification types work as expected
-
-### Migration Checklist
-
-- [ ] Install the React Native package
-- [ ] Copy native Android files
-- [ ] Update MainApplication.java
-- [ ] Add permissions to AndroidManifest.xml
-- [ ] Update build.gradle dependencies
-- [ ] Set up event callbacks
-- [ ] Test notification creation
-- [ ] Test notification clicks
-- [ ] Test periodic refresh
-- [ ] Test on different devices
-- [ ] Verify analytics integration
-- [ ] Test deep linking
+MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Support
 
 For issues and questions:
 
-1. Check the troubleshooting section above
-2. Review the Android implementation for reference
-3. Check device-specific settings
-4. Enable debug logging to identify issues
+- Create an issue on GitHub
+- Check the documentation
+- Review the example implementation
 
-## License
+## Changelog
 
-MIT License - see LICENSE file for details.
+See [CHANGELOG.md](CHANGELOG.md) for version history and updates.

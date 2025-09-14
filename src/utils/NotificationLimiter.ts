@@ -1,7 +1,13 @@
 import { NativeModules, Platform } from "react-native";
-import { Constants, RemoteConfigConstants } from "../types/Constants";
+import { Constants } from "../types/Constants";
 import { ActiveNotification } from "../types/NotificationTypes";
 import { NotificationLimitCallbacks } from "../interfaces/NotificationCallbacks";
+import {
+  getRemoteConfigBoolean,
+  getRemoteConfigNumber,
+} from "../managers/RemoteConfigManager";
+import { RemoteConfigConstants } from "../types/RemoteConfigTypes";
+import { recordException } from "../managers/AnalyticsManager";
 
 const { NotificationLimiterModule } = NativeModules;
 
@@ -160,37 +166,29 @@ export class NotificationLimiter {
 
   /**
    * Gets remote config boolean value
-   * This should be implemented to match your remote config system
    */
   private async getRemoteConfigBoolean(
     key: string,
     defaultValue: boolean
   ): Promise<boolean> {
-    // TODO: Implement your remote config logic here
-    // For now, return default value
-    return defaultValue;
+    return await getRemoteConfigBoolean(key as any, defaultValue);
   }
 
   /**
    * Gets remote config integer value
-   * This should be implemented to match your remote config system
    */
   private async getRemoteConfigInt(
     key: string,
     defaultValue: number
   ): Promise<number> {
-    // TODO: Implement your remote config logic here
-    // For now, return default value
-    return defaultValue;
+    return await getRemoteConfigNumber(key as any, defaultValue);
   }
 
   /**
    * Records exception to crash reporting system
-   * This should be implemented to match your crash reporting system
    */
   private async recordException(exception: Error): Promise<void> {
-    // TODO: Implement your crash reporting logic here (Firebase Crashlytics, etc.)
-    console.error("[NotificationLimiter] Exception recorded:", exception);
+    recordException(exception);
   }
 }
 

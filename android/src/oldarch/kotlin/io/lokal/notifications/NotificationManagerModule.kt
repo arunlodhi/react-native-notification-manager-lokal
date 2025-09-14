@@ -608,7 +608,8 @@ class NotificationManagerModule(reactContext: ReactApplicationContext) : ReactCo
             3 -> getLayoutId("notification_small_without_image_v3")
             4 -> getLayoutId("notification_small_without_image_v4")
             5 -> getLayoutId("notification_small_without_image_v5")
-            6 -> getLayoutId("notification_small_without_image_v7")
+            6 -> getLayoutId("notification_small_without_image_v6")
+            7 -> getLayoutId("notification_small_without_image_v7")
             else -> getLayoutId("notification_small_without_image_v1")
         }
 
@@ -617,6 +618,26 @@ class NotificationManagerModule(reactContext: ReactApplicationContext) : ReactCo
         customView.setTextViewText(getViewId("body"), parseHtmlTags(body))
         
         bindNotificationHeader(customView, categoryName)
+
+        // Language-specific handling for Tamil/Malayalam (exact Android logic)
+        val languageLocale = getCurrentLanguage()
+        val isTamilOrMalayalam = languageLocale == "ta" || languageLocale == "ml"
+        
+        if (notificationVersion == 6 || notificationVersion == 7) {
+            if (body.isEmpty()) {
+                val maxLines = if (isTamilOrMalayalam) 3 else 2
+                customView.setInt(getViewId("title"), "setMaxLines", maxLines)
+                customView.setViewVisibility(getViewId("body"), android.view.View.GONE)
+            } else {
+                if (isTamilOrMalayalam) {
+                    customView.setInt(getViewId("title"), "setMaxLines", 2)
+                    customView.setInt(getViewId("body"), "setMaxLines", 1)
+                } else {
+                    customView.setInt(getViewId("title"), "setMaxLines", 1)
+                    customView.setInt(getViewId("body"), "setMaxLines", 1)
+                }
+            }
+        }
 
         val builder = NotificationCompat.Builder(reactApplicationContext, channel)
             .setContentIntent(pendingIntent)
@@ -630,8 +651,15 @@ class NotificationManagerModule(reactContext: ReactApplicationContext) : ReactCo
             .setCustomHeadsUpContentView(customView)
             .setCustomBigContentView(customView)
 
-        if (notificationVersion in 1..4) {
-            builder.setStyle(NotificationCompat.DecoratedCustomViewStyle())
+        // Style handling based on version (exact Android logic)
+        val style = when (notificationVersion) {
+            1, 2, 3, 4 -> NotificationCompat.DecoratedCustomViewStyle()
+            5, 6, 7 -> null
+            else -> NotificationCompat.DecoratedCustomViewStyle()
+        }
+        
+        if (style != null) {
+            builder.setStyle(style)
         }
 
         return builder
@@ -1100,6 +1128,142 @@ class NotificationManagerModule(reactContext: ReactApplicationContext) : ReactCo
             promise.resolve(true)
         } catch (e: Exception) {
             promise.reject("SET_VERSION_ERROR", e.message, e)
+        }
+    }
+
+    @ReactMethod
+    fun getRemoteConfigBoolean(key: String, defaultValue: Boolean, promise: Promise) {
+        try {
+            val value = getRemoteConfigBoolean(key, defaultValue)
+            promise.resolve(value)
+        } catch (e: Exception) {
+            promise.reject("GET_REMOTE_CONFIG_BOOLEAN_ERROR", e.message, e)
+        }
+    }
+
+    @ReactMethod
+    fun getRemoteConfigInt(key: String, defaultValue: Int, promise: Promise) {
+        try {
+            val value = getRemoteConfigInt(key, defaultValue)
+            promise.resolve(value)
+        } catch (e: Exception) {
+            promise.reject("GET_REMOTE_CONFIG_INT_ERROR", e.message, e)
+        }
+    }
+
+    @ReactMethod
+    fun createNotificationWithCustomLayout(config: ReadableMap, promise: Promise) {
+        moduleScope.launch {
+            try {
+                val id = config.getInt("id")
+                val title = config.getString("title") ?: ""
+                val body = config.getString("body") ?: ""
+                val channel = config.getString("channel") ?: "default"
+                val importance = config.getInt("importance")
+                val uri = config.getString("uri")
+                val action = config.getString("action")
+                val categoryId = config.getString("categoryId")
+                val categoryName = config.getString("categoryName")
+                val imageUrl = config.getString("imageUrl")
+                val notificationVersion = config.getInt("notificationVersion")
+
+                // Validate notification
+                if (!isValidNotification(id, 0)) {
+                    promise.resolve(false)
+                    return@launch
+                }
+
+                // Apply notification limiting
+                limitNotifications()
+
+                val pendingIntent = createContentIntent(id, uri, action, categoryId)
+
+                val notification = if (imageUrl.isNullOrEmpty()) {
+                    // Create without image using custom layout
+                    createCustomNotificationWithoutImage(
+                        title, body, channel, importance, categoryName, pendingIntent
+                    ).build()
+                } else {
+                    // Create with image using custom layout
+                    val bitmap = loadImageBitmap(imageUrl)
+                    val blurBitmap = bitmap?.let { createBlurredBitmap(it) }
+                    createCustomNotificationWithImage(
+                        title, body, channel, importance, categoryName, 
+                        pendingIntent, bitmap, blurBitmap
+                    ).build()
+                }
+
+                // Add timestamp for ordering
+                notification.extras.putLong(NOTIFICATION_TIME_EXTRA, System.currentTimeMillis())
+                notification.extras.putInt(NOTIFICATION_REFRESH_ID_EXTRA, id)
+
+                notificationManager.notify(id, notification)
+                
+                // Send analytics event
+                sendEvent("onNotificationBuilt", createAnalyticsBundle(id, categoryId, uri))
+                
+                promise.resolve(true)
+            } catch (e: Exception) {
+                promise.reject("CREATE_CUSTOM_LAYOUT_ERROR", e.message, e)
+            }
+        }
+    }
+
+    @ReactMethod
+    fun createStickyNotification(config: ReadableMap, promise: Promise) {
+        moduleScope.launch {
+            try {
+                val id = config.getInt("id")
+                val title = config.getString("title") ?: ""
+                val body = config.getString("body") ?: ""
+                val channel = config.getString("channel") ?: "Sticky"
+                val uri = config.getString("uri")
+                val action = config.getString("action")
+
+                createNotificationChannels()
+
+                val intent = Intent().apply {
+                    putExtra("channel", channel)
+                    putExtra("importance", NotificationManager.IMPORTANCE_LOW)
+                    putExtra("notification_id", id)
+                    putExtra("is_source_notification", true)
+                    putExtra("uri", uri)
+                    this.action = action ?: "ACTION_PUSH_STICKY"
+                }
+
+                val pendingIntent = PendingIntent.getActivity(
+                    reactApplicationContext, id, intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0
+                )
+
+                // Use sticky notification layout
+                val layoutId = getLayoutId("notification_sticky_small")
+                val customView = android.widget.RemoteViews(reactApplicationContext.packageName, layoutId)
+                customView.setTextViewText(getViewId("title"), parseHtmlTags(title))
+                customView.setTextViewText(getViewId("body"), parseHtmlTags(body))
+
+                val builder = NotificationCompat.Builder(reactApplicationContext, "${reactApplicationContext.packageName}_$channel")
+                    .setContentIntent(pendingIntent)
+                    .setSmallIcon(getNotificationIcon())
+                    .setColor(reactApplicationContext.resources.getColor(android.R.color.holo_blue_bright))
+                    .setPriority(NotificationCompat.PRIORITY_LOW)
+                    .setOngoing(true) // Sticky notification
+                    .setAutoCancel(false)
+                    .setCustomContentView(customView)
+
+                // Add timestamp for ordering
+                val notification = builder.build()
+                notification.extras.putLong(NOTIFICATION_TIME_EXTRA, System.currentTimeMillis())
+
+                notificationManager.notify(id, notification)
+                
+                // Send analytics event
+                sendEvent("onNotificationBuilt", createAnalyticsBundle(id, "sticky", uri))
+                
+                promise.resolve(true)
+            } catch (e: Exception) {
+                promise.reject("CREATE_STICKY_ERROR", e.message, e)
+            }
         }
     }
 

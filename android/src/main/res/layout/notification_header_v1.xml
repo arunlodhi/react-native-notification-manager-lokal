@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="horizontal"
+    android:layout_width="wrap_content"
+    android:layout_height="20dp"
+    android:background="@color/white">
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="20dp"
+        android:src="@drawable/ic_custom_notification_icon_v1"
+        android:layout_marginStart="@dimen/notification_start_margin"/>
+
+    <LinearLayout
+        android:id="@+id/category_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="@dimen/notification_large_margin">
+
+        <TextView
+            android:id="@+id/category_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="Category"
+            style="@style/NotificationContentStyle"
+            android:layout_gravity="center_vertical"
+            android:maxLines="1"
+            android:maxWidth="100dp"/>
+
+        <ImageView
+            android:layout_width="2dp"
+            android:layout_height="2dp"
+            android:layout_marginStart="@dimen/notification_medium_margin"
+            android:src="@color/view_count_color"
+            android:layout_gravity="center_vertical"/>
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/time_stamp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="Time"
+        android:layout_marginStart="@dimen/notification_medium_margin"
+        style="@style/NotificationContentStyle"
+        android:layout_gravity="center_vertical"/>
+
+</LinearLayout>

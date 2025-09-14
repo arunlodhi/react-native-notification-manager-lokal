@@ -1,11 +1,18 @@
 import { NativeModules, Platform } from "react-native";
-import { Constants, RemoteConfigConstants } from "../types/Constants";
+import { Constants } from "../types/Constants";
 import {
   ActiveNotification,
   NotificationData,
 } from "../types/NotificationTypes";
 import { NotificationRefreshCallbacks } from "../interfaces/NotificationCallbacks";
 import { NotificationReCreator } from "./NotificationReCreator";
+import {
+  getRemoteConfigNumber,
+  getRemoteConfigBoolean,
+} from "../managers/RemoteConfigManager";
+import { RemoteConfigConstants } from "../types/RemoteConfigTypes";
+import { recordException } from "../managers/AnalyticsManager";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { NotificationRefresherModule } = NativeModules;
 
@@ -310,33 +317,45 @@ export class NotificationRefresher {
     key: string,
     defaultValue: number
   ): Promise<number> {
-    // TODO: Implement your storage logic here (AsyncStorage, etc.)
-    return defaultValue;
+    try {
+      const value = await AsyncStorage.getItem(key);
+      return value ? parseInt(value, 10) : defaultValue;
+    } catch (error) {
+      console.warn(
+        `[NotificationRefresher] Failed to get stored long ${key}:`,
+        error
+      );
+      return defaultValue;
+    }
   }
 
   private async storeLong(key: string, value: number): Promise<void> {
-    // TODO: Implement your storage logic here (AsyncStorage, etc.)
+    try {
+      await AsyncStorage.setItem(key, value.toString());
+    } catch (error) {
+      console.warn(
+        `[NotificationRefresher] Failed to store long ${key}:`,
+        error
+      );
+    }
   }
 
   private async getRemoteConfigLong(
     key: string,
     defaultValue: number
   ): Promise<number> {
-    // TODO: Implement your remote config logic here
-    return defaultValue;
+    return await getRemoteConfigNumber(key as any, defaultValue);
   }
 
   private async getRemoteConfigInt(
     key: string,
     defaultValue: number
   ): Promise<number> {
-    // TODO: Implement your remote config logic here
-    return defaultValue;
+    return await getRemoteConfigNumber(key as any, defaultValue);
   }
 
   private async recordException(exception: Error): Promise<void> {
-    // TODO: Implement your crash reporting logic here
-    console.error("[NotificationRefresher] Exception recorded:", exception);
+    recordException(exception);
   }
 
   private async delay(ms: number): Promise<void> {

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:gravity="center"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/notification_hub_error_state"
+        style="@style/ErrorStateText"
+        android:layout_marginBottom="@dimen/guideline_slider_card_list_padding"/>
+
+    <ImageView
+        android:id="@+id/pic"
+        android:layout_width="@dimen/error_pic_width"
+        android:layout_height="@dimen/error_pic_height"
+        app:srcCompat="@drawable/error_state_16"
+        android:scaleType="centerInside"/>
+
+    <ImageView
+        android:id="@+id/retry_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/ic_retry_round"
+        android:scaleType="centerInside"
+        android:layout_marginTop="@dimen/margin_offset" />
+
+    <TextView
+        android:id="@+id/retry_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/notification_hub_error_retry"
+        style="@style/RetryText"
+        android:textAlignment="center"
+        android:textColor="@color/profile_edir_name_color"
+        android:layout_marginTop="@dimen/margin_between"/>
+
+
+</LinearLayout>

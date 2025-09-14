@@ -48,12 +48,6 @@
             android:layout_marginEnd="@dimen/notification_small_margin"
             android:textSize="@dimen/notification_title_text_size"/>
 
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/notification_small_margin"
-            android:src="@color/colorAccent"
-            android:layout_alignParentBottom="true" />
-
     </RelativeLayout>
 
 </RelativeLayout>

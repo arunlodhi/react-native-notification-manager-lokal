@@ -19,7 +19,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/notification_large_margin"
-            layout="@layout/notification_header" />
+            layout="@layout/notification_header_v1" />
 
         <ImageView
             android:id="@+id/icon"
