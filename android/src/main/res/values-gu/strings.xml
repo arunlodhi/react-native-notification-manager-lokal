@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">લોકલ</string>
+    <string name="title">ટાઈટલ</string>
+    <string name="description">વર્ણન</string>
+    <string name="share">શેઅર કરો</string>
+    <string name="open_in_app">ખોલો</string>
+    <string name="notification_refresh">રીફ્રેશ કરો</string>
+</resources>

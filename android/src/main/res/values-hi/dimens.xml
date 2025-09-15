@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="video_caption_text">10sp</dimen>
+    <dimen name="button_text_size">16sp</dimen>
+
+    <!--profile-related-->
+    <dimen name="profile_large_text_size">20sp</dimen>
+    <dimen name="profile_medium_text_size">14sp</dimen>
+    <dimen name="profile_small_text_size">12sp</dimen>
+    <dimen name="profile_subtitle_text_size">14sp</dimen>
+    <dimen name="profile_verified_date_text_size">12sp</dimen>
+    <dimen name="submission_onboarding_description_size">14sp</dimen>
+
+    <!--submission onboarding-->
+    <dimen name="submission_onboarding_title_size">24sp</dimen>
+    <dimen name="submission_onboarding_lokal_star_size">36sp</dimen>
+
+    <dimen name="login_header_size">16sp</dimen>
+    <dimen name="login_button_text_size">14sp</dimen>
+
+    <!--bottom navigation -->
+    <dimen name="brand_text_size">14sp</dimen>
+
+    <!--feedback related-->
+    <dimen name="feedback_text_size">16sp</dimen>
+
+    <dimen name="location_title_size">16sp</dimen>
+    <dimen name="location_subtitle_size">12sp</dimen>
+    <dimen name="location_header_size">24sp</dimen>
+    <dimen name="location_dialog_header_state_size">20sp</dimen>
+
+    <dimen name="cricket_title_text_size">14sp</dimen>
+
+    <dimen name="comment_text_size">14sp</dimen>
+    <dimen name="comment_guideline_text_size">14sp</dimen>
+
+    <dimen name="bulletin_ftue_title_size">18sp</dimen>
+
+    <dimen name="location_state_title_size">24sp</dimen>
+    <dimen name="location_district_title_size">16sp</dimen>
+
+    <!--Notification related -->
+    <dimen name="notification_title_text_size">14sp</dimen>
+
+    <!--font sizes-->
+    <dimen name="title_font_size">16sp</dimen>
+    <dimen name="description_font_size">14sp</dimen>
+    <dimen name="bulletin_caption_font_size">22sp</dimen>
+    <dimen name="popular_title_font_size">16sp</dimen>
+    <dimen name="caption_font_size">14sp</dimen>
+    <dimen name="action_font_size">12sp</dimen>
+    <dimen name="timestamp_font_size">10sp</dimen>
+
+    <dimen name="ads_text_size">12sp</dimen>
+    <dimen name="earnings_how_points_line_spacing">4sp</dimen>
+    <dimen name="image_edit_action_done_text_size">14sp</dimen>
+
+    <!-- Users transaction related  -->
+    <dimen name="transaction_title_size">16sp</dimen>
+    <dimen name="transaction_content_size">14sp</dimen>
+
+    <!-- Classifieds related   -->
+    <dimen name="classified_description_text">14sp</dimen>
+    <dimen name="admob_title_text">16sp</dimen>
+
+    <!--  Matrimony platform related  -->
+    <dimen name="matrimony_field_header_text">14sp</dimen>
+
+    <!-- classified_featured_post_margin =  classified_featured_next_item_visible_width + margin   -->
+    <dimen name="classified_featured_title_text">12sp</dimen>
+    <dimen name="classified_featured_btn_text">12sp</dimen>
+
+    <!--    filters related -->
+    <dimen name="filters_btn_text_size">16sp</dimen>
+    <dimen name="filters_content_text_size">14sp</dimen>
+
+    <!--registration related-->
+    <dimen name="user_registration_title_size">16sp</dimen>
+    <dimen name="user_registration_info_size">14sp</dimen>
+    <dimen name="user_registration_user_name_size">20sp</dimen>
+    <dimen name="user_registration_reminder_size">14sp</dimen>
+    <dimen name="user_registration_select_type_size">16sp</dimen>
+    <dimen name="user_registration_select_document_size">16sp</dimen>
+    <dimen name="user_registration_document_conditions_size">14sp</dimen>
+    <dimen name="user_registration_document_info_size">14sp</dimen>
+    <dimen name="user_registration_document_file_name_size">14sp</dimen>
+    <dimen name="user_registration_document_file_metadata_size">14sp</dimen>
+    <dimen name="user_registration_successful_message_size">16sp</dimen>
+    <dimen name="user_registration_successful_congratulations_size">14sp</dimen>
+    <dimen name="user_registration_successful_earnings_size">14sp</dimen>
+    <dimen name="user_registration_error_text_size">14sp</dimen>
+
+    <dimen name="profile_registration_status_text">12sp</dimen>
+    <dimen name="profile_registration_progress_bar_text">14sp</dimen>
+    <dimen name="profile_registration_current_earnings_amount">20sp</dimen>
+    <dimen name="profile_registration_current_earnings_title">18sp</dimen>
+    <dimen name="profile_registration_current_earnings_caption">16sp</dimen>
+    <dimen name="profile_registration_button">14sp</dimen>
+    <dimen name="profile_registration_caption">16sp</dimen>
+
+    <dimen name="text_size_very_large">28sp</dimen>
+    <dimen name="text_size_largest">24sp</dimen>
+    <dimen name="text_size_larger">22sp</dimen>
+    <dimen name="text_size_large">20sp</dimen>
+    <dimen name="text_size_medium">18sp</dimen>
+    <dimen name="text_size_small">16sp</dimen>
+    <dimen name="text_size_mini">14sp</dimen>
+    <dimen name="text_size_micro">12sp</dimen>
+    <dimen name="text_size_nano">10sp</dimen>
+
+    <dimen name="linespacing_comm_referral_nudge_desc">4sp</dimen>
+
+    <dimen name="text_size_screenshot_description">14sp</dimen>
+
+    <dimen name="notification_text_size_v5">16sp</dimen>
+
+
+</resources>

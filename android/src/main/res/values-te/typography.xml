@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<resources>
+
+    <!--    ======================================  -->
+    <!--    Text styles specific to telugu locale  -->
+    <!--    ======================================  -->
+
+    <!-- Begin custom text styles -->
+    <style name="TextAppearance.Lokal.Label1" parent="TextAppearance.MaterialComponents.Subtitle1">
+        <item name="android:textSize">@dimen/sp_15</item>
+        <item name="android:lineSpacingMultiplier">@dimen/multiplier_label1</item>
+        <item name="android:lineSpacingExtra">0dp</item>
+        <item name="fontPath">fonts/KohinoorTelugu-Regular.otf</item>
+    </style>
+
+    <style name="TextAppearance.Lokal.Label1.Prominent" parent="TextAppearance.MaterialComponents.Subtitle1">
+        <item name="android:textSize">@dimen/sp_15</item>
+        <item name="android:lineSpacingMultiplier">@dimen/multiplier_label1</item>
+        <item name="android:lineSpacingExtra">0dp</item>
+        <item name="fontPath">fonts/KohinoorTelugu-Semibold.otf</item>
+    </style>
+
+    <style name="TextAppearance.Lokal.Label2.Prominent" parent="TextAppearance.MaterialComponents.Subtitle2">
+        <item name="android:textSize">@dimen/sp_13</item>
+        <item name="android:lineSpacingMultiplier">@dimen/multiplier_label2</item>
+        <item name="android:lineSpacingExtra">0dp</item>
+        <item name="fontPath">fonts/KohinoorTelugu-Semibold.otf</item>
+    </style>
+
+    <style name="TextAppearance.Lokal.Caption1" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="android:textSize">@dimen/sp_11</item>
+        <item name="android:lineSpacingMultiplier">@dimen/multiplier_caption1</item>
+        <item name="android:lineSpacingExtra">0dp</item>
+        <item name="fontPath">fonts/KohinoorTelugu-Regular.otf</item>
+    </style>
+    <!-- End custom text styles -->
+
+</resources>

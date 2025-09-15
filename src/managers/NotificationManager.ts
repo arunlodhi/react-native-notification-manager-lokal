@@ -3,6 +3,7 @@ import { Constants, RemoteConfigConstants } from "../types/Constants";
 import {
   NotificationPayload,
   NotificationData,
+  UserPreferences,
 } from "../types/NotificationTypes";
 import {
   NotificationEventCallbacks,
@@ -11,6 +12,7 @@ import {
 import { NotificationLimiter } from "../utils/NotificationLimiter";
 import { NotificationRefresher } from "../utils/NotificationRefresher";
 import { NotificationReCreator } from "../utils/NotificationReCreator";
+import { NotificationUtil } from "../utils/NotificationUtil";
 
 const { NotificationManagerModule } = NativeModules;
 
@@ -254,6 +256,110 @@ export class NotificationManager {
   }
 
   /**
+   * Creates a notification with custom layout and user preferences - NEW METHOD
+   * This method allows users to pass language and notification preferences directly
+   */
+  public async createNotificationWithCustomLayout(
+    id: number,
+    title: string,
+    body: string,
+    categoryId: string,
+    categoryName: string,
+    uri: string,
+    action: string,
+    userPreferences: UserPreferences,
+    options?: {
+      imageUrl?: string;
+      channel?: string;
+      importance?: number;
+      notificationVersion?: number;
+      isGroupingNeeded?: boolean;
+      groupID?: number;
+      notifType?: string;
+      isPersonalized?: boolean;
+    },
+    callbacks?: NotificationCallbacks
+  ): Promise<void> {
+    await this.ensureInitialized();
+
+    const {
+      imageUrl,
+      channel = Constants.DEFAULT_CHANNEL,
+      importance = Constants.IMPORTANCE_HIGH,
+      notificationVersion = 1,
+      isGroupingNeeded = false,
+      groupID = 0,
+      notifType = "",
+      isPersonalized = false,
+    } = options || {};
+
+    // Validate notification using exact Android logic
+    if (!(await this.isNotificationValid(String(id), String(groupID)))) {
+      console.log(
+        `[NotificationManager] Notification ${id} is not valid, skipping`
+      );
+      return;
+    }
+
+    try {
+      // Apply notification limiting before creation
+      await NotificationLimiter.getInstance().limitNotifications();
+
+      // Create notification with custom layout via native module
+      await NotificationManagerModule.createNotificationWithCustomLayout({
+        id,
+        title,
+        body,
+        categoryId,
+        categoryName,
+        uri,
+        action,
+        channel,
+        importance,
+        notificationVersion,
+        imageUrl,
+        isGroupingNeeded,
+        groupID,
+        notifType,
+        isPersonalized,
+        // Pass user preferences directly
+        selectedLanguage: userPreferences.selectedLanguage,
+        preferredLocale: userPreferences.preferredLocale,
+        isNotificationGroupingActive:
+          userPreferences.isNotificationGroupingActive,
+        keepNotificationAtTop: userPreferences.keepNotificationAtTop,
+        isSilentPush: userPreferences.isSilentPush,
+      });
+
+      // Call analytics callback
+      if (callbacks) {
+        const bundle = await this.getNotificationBuiltBundle(
+          uri,
+          String(id),
+          this.getPostIdFromUri(uri),
+          categoryId,
+          channel,
+          importance,
+          notifType
+        );
+        callbacks.onNotificationBuilt(bundle);
+      }
+
+      console.log(
+        `[NotificationManager] Created custom layout notification ${id} with language: ${
+          userPreferences.selectedLanguage || "en"
+        }`
+      );
+    } catch (error) {
+      console.error(
+        `[NotificationManager] Failed to create custom layout notification ${id}:`,
+        error
+      );
+      throw error;
+    }
+  }
+
+  /**
    * Recreates a notification from stored data - used by refresh logic
    */
   public async recreateNotification(
@@ -315,70 +421,17 @@ export class NotificationManager {
   }
 
   /**
-   * Validates notification using exact Android logic
+   * Validates notification using exact Android logic - now uses consolidated NotificationUtil methods
    */
   private async isNotificationValid(
     notificationId: string,
     sampleGroupId: string
   ): Promise<boolean> {
-    const notifId = parseInt(notificationId);
-    const isNotificationIdValid = await this.isValidNotificationId(notifId);
-
-    if (isNotificationIdValid) {
-      return await this.isValidGroupId(sampleGroupId);
-    } else {
-      return false;
-    }
-  }
-
-  /**
-   * Validates notification ID - exact port of Android isValid() method
-   */
-  private async isValidNotificationId(id: number): Promise<boolean> {
-    const prevNotifsList = await this.getStoredIntArray(
-      Constants.PREV_NOTIFS_LIST
+    // Use consolidated method from NotificationUtil
+    return await NotificationUtil.isNotificationValid(
+      notificationId,
+      sampleGroupId
     );
-
-    if (prevNotifsList.includes(id)) {
-      return false;
-    } else {
-      if (id > 0) {
-        if (prevNotifsList.length === 20) {
-          prevNotifsList.shift();
-        }
-        prevNotifsList.push(id);
-        await this.storeIntArray(Constants.PREV_NOTIFS_LIST, prevNotifsList);
-      }
-      return true;
-    }
-  }
-
-  /**
-   * Validates group ID - exact port of Android isValidGroupId() method
-   */
-  private async isValidGroupId(channelId: string): Promise<boolean> {
-    if (!channelId) return true;
-
-    const id = parseInt(channelId);
-    const prevNotifsGroupsList = await this.getStoredIntArray(
-      Constants.PREV_NOTIFS_SAMPLE_GROUPS_LIST
-    );
-
-    if (prevNotifsGroupsList.includes(id)) {
-      return false;
-    } else {
-      if (id > 0) {
-        if (prevNotifsGroupsList.length === 20) {
-          prevNotifsGroupsList.shift();
-        }
-        prevNotifsGroupsList.push(id);
-        await this.storeIntArray(
-          Constants.PREV_NOTIFS_SAMPLE_GROUPS_LIST,
-          prevNotifsGroupsList
-        );
-      }
-      return true;
-    }
   }
 
   /**
@@ -416,14 +469,9 @@ export class NotificationManager {
     }
   }
 
+  // Removed duplicate utility methods - now using consolidated methods from NotificationUtil
   private getPostIdFromUri(uri: string): string {
-    if (!uri) return Constants.UNSET;
-    try {
-      const parts = uri.split("/");
-      return parts[parts.length - 1] || Constants.UNSET;
-    } catch (error) {
-      return Constants.UNSET;
-    }
+    return NotificationUtil.getPostIdFromUri(uri);
   }
 
   private async getNotificationBuiltBundle(
@@ -435,32 +483,23 @@ export class NotificationManager {
     importance: number,
     notifType: string
   ): Promise<{ [key: string]: any }> {
-    const isNotificationEnabled =
-      await NotificationManagerModule.areNotificationsEnabled();
-    const status = isNotificationEnabled ? "built" : "blocked";
-
-    return {
-      notification_id: notificationId,
-      category_id: categoryId,
-      status: status,
-      post_id: postId,
-      channel: channel,
-      importance: importance,
-      notification_type: notifType,
-      uri: uri,
-    };
+    return await NotificationUtil.getNotificationBuiltBundle(
+      uri,
+      notificationId,
+      postId,
+      categoryId,
+      channel,
+      importance,
+      notifType
+    );
   }
 
   private async getStoredIntArray(key: string): Promise<number[]> {
-    try {
-      return await NotificationManagerModule.getStoredIntArray(key);
-    } catch (error) {
-      return [];
-    }
+    return await NotificationUtil.getStoredIntArray(key);
   }
 
   private async storeIntArray(key: string, array: number[]): Promise<void> {
-    await NotificationManagerModule.storeIntArray(key, array);
+    await NotificationUtil.storeIntArray(key, array);
   }
 }
 
@@ -660,4 +699,56 @@ export const setNotificationVersion = async (
   version: number
 ): Promise<void> => {
   await NotificationManagerModule.setNotificationVersion(version);
+};
+
+/**
+ * NEW: Create notification with custom layout and user preferences - Convenience function
+ * This is the main function users should use for advanced notifications with language support
+ */
+export const createNotificationWithCustomLayout = async (
+  id: number,
+  title: string,
+  body: string,
+  categoryId: string,
+  categoryName: string,
+  uri: string,
+  action: string,
+  userPreferences: UserPreferences,
+  options?: {
+    imageUrl?: string;
+    channel?: string;
+    importance?: number;
+    notificationVersion?: number;
+    isGroupingNeeded?: boolean;
+    groupID?: number;
+    notifType?: string;
+    isPersonalized?: boolean;
+  },
+  callbacks?: NotificationCallbacks
+): Promise<void> => {
+  await NotificationManager.getInstance().createNotificationWithCustomLayout(
+    id,
+    title,
+    body,
+    categoryId,
+    categoryName,
+    uri,
+    action,
+    userPreferences,
+    options,
+    callbacks
+  );
+};
+
+/**
+ * Locale Management Functions
+ * Set the app locale for notifications and UI
+ */
+
+/**
+ * Set the app locale for notifications and UI
+ * @param languageCode - Language code (e.g., 'en', 'hi', 'ta', 'te', etc.)
+ */
+export const setAppLocale = async (languageCode: string): Promise<void> => {
+  await NotificationManagerModule.setAppLocale(languageCode);
 };

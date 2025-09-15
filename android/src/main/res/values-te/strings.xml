@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Lokal</string>
+    <string name="title">Title</string>
+    <string name="description">Description</string>
+    <string name="share">షేర్</string>
+    <string name="open_in_app">ఓపెన్</string>
+    <string name="notification_refresh">Refresh</string>
+</resources>

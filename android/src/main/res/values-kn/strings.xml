@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ಲೋಕಲ್</string>
+    <string name="title">ಟೈಟಲ್</string>
+    <string name="description">ವಿವರಣೆ</string>
+    <string name="share">ಶೇರ್</string>
+    <string name="open_in_app">ಓಪನ್</string>
+    <string name="notification_refresh">ರಿಫ್ರೆಶ್</string>
+</resources>

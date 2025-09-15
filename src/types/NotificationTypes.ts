@@ -1,3 +1,11 @@
+export interface UserPreferences {
+  selectedLanguage?: string; // User's selected language (default: "en")
+  preferredLocale?: string; // User's preferred locale (default: "none")
+  isNotificationGroupingActive?: boolean; // Whether notification grouping is enabled (default: true)
+  keepNotificationAtTop?: boolean; // Whether to keep notifications at top (default: false)
+  isSilentPush?: boolean; // Whether this is a silent push (default: false)
+}
+
 export interface NotificationPayload {
   imageUrl?: string;
   notificationId: number;
@@ -17,6 +25,7 @@ export interface NotificationPayload {
   notifType: string;
   isPersonalized?: boolean;
   isGroupingNeeded?: boolean;
+  userPreferences?: UserPreferences; // User language and notification preferences
 }
 
 export interface NotificationData {

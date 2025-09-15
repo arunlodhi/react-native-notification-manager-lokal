@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="line_spacing_multiplier" type="integer" format="float">0.95</item>
+    <item name="line_spacing_multiplier_description" type="integer" format="float">0.95</item>
+
+    <integer name="max_comment_lines">5</integer>
+    <integer name="main_page_max_comment_lines">3</integer>
+
+    <item name="primary_line_spacing_mulitplier" type="integer" format="float">0.75</item>
+    <item name="secondary_line_spacing_mulitplier" type="integer" format="float">1.2</item>
+</resources>

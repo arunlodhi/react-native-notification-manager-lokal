@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">লোকাল</string>
+    <string name="title">শিরোনাম</string>
+    <string name="description">বিবরণ</string>
+    <string name="share">শেয়ার করুন</string>
+    <string name="open_in_app">খুলুন</string>
+    <string name="notification_refresh">রিফ্রেশ করুন</string>
+</resources>

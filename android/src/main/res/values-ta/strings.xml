@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">லோகல்</string>
+    <string name="title">தலைப்பு</string>
+    <string name="description">விளக்கம்</string>
+    <string name="share">பகிர்</string>
+    <string name="open_in_app">திற</string>
+    <string name="notification_refresh">புதுப்பிக்கவும்</string>
+</resources>

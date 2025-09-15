@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ലോക്കൽ</string>
+    <string name="title">ടൈറ്റിൽ</string>
+    <string name="description">വിവരണം</string>
+    <string name="share">പങ്കിടുക</string>
+    <string name="open_in_app">തുറക്കുക</string>
+    <string name="notification_refresh">റിഫ്രഷ് ചെയ്യുക</string>
+</resources>

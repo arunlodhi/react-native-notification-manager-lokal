@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="colorAccent">#FFBB00</color>
+    <color name="c_3ea2f4">#3EA2F4</color>
+    <color name="view_count_color">#616161</color>
+    <color name="notification_text_color">#5f5f5f</color>008577
+    <color name="notification_share_text_color">#008577</color>
+</resources>

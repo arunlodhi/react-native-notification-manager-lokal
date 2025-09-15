@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="lokal_id">1</integer>
+    <integer name="other_id">3</integer>
+    <integer name="video_id">0</integer>
+    <integer name="jobs_id">2</integer>
+    <integer name="real_estate_id">87</integer>
+    <integer name="debug_full_screen_video_category_id">117</integer>
+    <integer name="proddebug_full_screen_video_category_id">4133</integer>
+    <integer name="qa_full_screen_video_category_id">4034</integer>
+
+    <integer name="cricket_id_debug">113</integer>
+    <integer name="cricket_id_prod">3734</integer>
+
+    <integer name="lokal_services_id">1000</integer>
+    <integer name="bulletin_id">999</integer>
+    <integer name="explore_id">-11</integer>
+    <integer name="search_id">99999</integer>
+    <integer name="profile_id">99996</integer>
+    <integer name="notification_hub_id">99997</integer>
+    <integer name="submit_categories_id">99998</integer>
+    <integer name="status_categories_id">999990</integer>
+    <integer name="trending_card_id">-12345</integer>
+
+    <item name="line_spacing_multiplier" type="integer" format="float">1.0</item>
+    <item name="line_spacing_multiplier_description" type="integer" format="float">1.0</item>
+
+    <integer name="max_lines_matrimony_lp_carousel_title">4</integer>
+    <integer name="max_comment_lines">5</integer>
+    <integer name="main_page_max_comment_lines">3</integer>
+    <integer name="real_estate_title_max_lines">2</integer>
+
+    <item name="primary_line_spacing_mulitplier" type="integer" format="float">1.0</item>
+    <item name="secondary_line_spacing_mulitplier" type="integer" format="float">1.0</item>
+
+    <!-- Article share card integers -->
+    <item name="article_share_card_title_line_spacing_multiplier" type="integer" format="float">1.25</item>
+    <item name="article_share_card_bottom_text_line_spacing_multiplier" type="integer" format="float">1.15</item>
+
+    <!-- App Share Nudge Card integers -->
+    <item name="app_share_nudge_line_spacing_multiplier" type="integer" format="float">1.2</item>
+</resources>

@@ -8,9 +8,13 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.LocaleList;
 import android.service.notification.StatusBarNotification;
+import java.util.Locale;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import com.bumptech.glide.Glide;
@@ -52,7 +56,8 @@ public class NotificationManagerModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void initialize(Promise promise) {
         try {
-            createNotificationChannels();
+            // Use consolidated method from NotificationUtil
+            NotificationUtil.createNotificationChannels(reactContext);
             promise.resolve(true);
         } catch (Exception e) {
             promise.reject("INIT_ERROR", e.getMessage());
@@ -93,6 +98,61 @@ public class NotificationManagerModule extends ReactContextBaseJavaModule {
             loadImageAndCreateNotification(config, imageUrl, promise);
         } catch (Exception e) {
             promise.reject("CREATE_IMAGE_ERROR", e.getMessage());
+        }
+    }
+
+    @ReactMethod
+    public void createNotificationWithCustomLayout(ReadableMap config, Promise promise) {
+        try {
+            int id = config.getInt("id");
+            String title = config.getString("title");
+            String body = config.getString("body");
+            String categoryId = config.getString("categoryId");
+            String categoryName = config.getString("categoryName");
+            String uri = config.getString("uri");
+            String action = config.getString("action");
+            String channel = config.hasKey("channel") ? config.getString("channel") : "Recommendation";
+            int importance = config.hasKey("importance") ? config.getInt("importance") : NotificationCompat.PRIORITY_HIGH;
+            int notificationVersion = config.hasKey("notificationVersion") ? config.getInt("notificationVersion") : 1;
+            String imageUrl = config.hasKey("imageUrl") ? config.getString("imageUrl") : null;
+
+            boolean isGroupingNeeded = config.hasKey("isGroupingNeeded") ? config.getBoolean("isGroupingNeeded") : false;
+            int groupID = config.hasKey("groupID") ? config.getInt("groupID") : 0;
+            String notifType = config.hasKey("notifType") ? config.getString("notifType") : "";
+            boolean isPersonalized = config.hasKey("isPersonalized") ? config.getBoolean("isPersonalized") : false;
+
+            // Create UserPreferences from config using consolidated method
+            UserPreferences userPreferences = NotificationUtil.createUserPreferencesFromConfig(config);
+
+            if (imageUrl != null && !imageUrl.isEmpty()) {
+                // Load image and create notification with custom layout
+                loadImageAndCreateCustomNotification(config, imageUrl, promise);
+            } else {
+                // Create notification without image using custom layout with all native functionality
+                NotificationUtil.createNotificationWithCustomLayout(
+                    reactContext,
+                    id,
+                    null, // no bitmap
+                    null, // no blur bitmap
+                    title,
+                    body,
+                    categoryId,
+                    categoryName,
+                    uri,
+                    action,
+                    channel,
+                    importance,
+                    notificationVersion,
+                    isGroupingNeeded,
+                    groupID,
+                    notifType,
+                    isPersonalized,
+                    userPreferences
+                );
+                promise.resolve(true);
+            }
+        } catch (Exception e) {
+            promise.reject("CREATE_CUSTOM_ERROR", e.getMessage());
         }
     }
 
@@ -199,6 +259,43 @@ public class NotificationManagerModule extends ReactContextBaseJavaModule {
         }
     }
 
+    @ReactMethod
+    public void setAppLocale(String languageCode, Promise promise) {
+        try {
+            setLocale(languageCode);
+            promise.resolve(true);
+        } catch (Exception e) {
+            promise.reject("SET_LOCALE_ERROR", e.getMessage());
+        }
+    }
+
+    @ReactMethod
+    public void createQuizNotification(ReadableMap config, Promise promise) {
+        try {
+            int id = config.getInt("id");
+            String imageUrl = config.hasKey("imageUrl") ? config.getString("imageUrl") : "";
+            String title = config.getString("title");
+            String body = config.getString("body");
+            String categoryId = config.hasKey("categoryId") ? config.getString("categoryId") : "";
+            String categoryName = config.hasKey("categoryName") ? config.getString("categoryName") : "";
+            String uri = config.hasKey("uri") ? config.getString("uri") : "";
+            String action = config.hasKey("action") ? config.getString("action") : "";
+            String tag = config.hasKey("tag") ? config.getString("tag") : "";
+            String channel = config.hasKey("channel") ? config.getString("channel") : "default";
+            int importance = config.hasKey("importance") ? config.getInt("importance") : NotificationCompat.PRIORITY_HIGH;
+
+            if (imageUrl != null && !imageUrl.isEmpty()) {
+                loadImageAndCreateQuizNotification(config, imageUrl, promise);
+            } else {
+                createQuizNotificationInternal(id, null, null, title, body, categoryId, categoryName,
+                    uri, action, tag, channel, importance);
+                promise.resolve(true);
+            }
+        } catch (Exception e) {
+            promise.reject("CREATE_QUIZ_ERROR", e.getMessage());
+        }
+    }
+
     // Private helper methods
     private void createNotificationInternal(int id, String title, String body, String categoryId, 
                                           String categoryName, String uri, String action, String tag,
@@ -250,34 +347,10 @@ public class NotificationManagerModule extends ReactContextBaseJavaModule {
         notificationManager.notify(id, builder.build());
     }
 
-    private void createNotificationChannels() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            // Create channels matching exact Android implementation
-            createChannel("Recommendation", "Recommendations", NotificationManager.IMPORTANCE_HIGH);
-            createChannel("Cricket", "Cricket Updates", NotificationManager.IMPORTANCE_LOW);
-            createChannel("Comments", "Comments", NotificationManager.IMPORTANCE_LOW);
-            createChannel("Downloads", "Downloads", NotificationManager.IMPORTANCE_LOW);
-            createChannel("Uploads", "Uploads", NotificationManager.IMPORTANCE_LOW);
-        }
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    private void createChannel(String channelId, String channelName, int importance) {
-        NotificationChannel channel = new NotificationChannel(channelId, channelName, importance);
-        channel.setDescription("Channel for " + channelName);
-        notificationManager.createNotificationChannel(channel);
-    }
-
+    // Removed duplicate methods - now using consolidated methods from NotificationUtil
     private void createGroupSummaryNotification(int groupID, String channel, String categoryName) {
-        NotificationCompat.Builder summaryBuilder = new NotificationCompat.Builder(reactContext, channel)
-            .setContentTitle(categoryName)
-            .setContentText("Multiple notifications")
-            .setSmallIcon(getNotificationIcon())
-            .setGroup(String.valueOf(groupID))
-            .setGroupSummary(true)
-            .setAutoCancel(true);
-
-        notificationManager.notify(groupID + 10000, summaryBuilder.build());
+        // Use consolidated method from NotificationUtil
+        NotificationUtil.createBasicGroupSummaryNotification(reactContext, groupID, channel, categoryName);
     }
 
     private void loadImageAndCreateNotification(ReadableMap config, String imageUrl, Promise promise) {
@@ -307,6 +380,75 @@ public class NotificationManagerModule extends ReactContextBaseJavaModule {
             });
     }
 
+    private void loadImageAndCreateCustomNotification(ReadableMap config, String imageUrl, Promise promise) {
+        Glide.with(reactContext)
+            .asBitmap()
+            .load(imageUrl)
+            .into(new CustomTarget<Bitmap>() {
+                @Override
+                public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                    try {
+                        createCustomNotificationWithBitmap(config, resource);
+                        promise.resolve(true);
+                    } catch (Exception e) {
+                        promise.reject("CREATE_CUSTOM_WITH_BITMAP_ERROR", e.getMessage());
+                    }
+                }
+
+                @Override
+                public void onLoadCleared(@Nullable Drawable placeholder) {
+                    // Fallback to custom notification without image
+                    try {
+                        createNotificationWithCustomLayout(config, promise);
+                    } catch (Exception e) {
+                        promise.reject("CUSTOM_FALLBACK_ERROR", e.getMessage());
+                    }
+                }
+            });
+    }
+
+    private void createCustomNotificationWithBitmap(ReadableMap config, Bitmap bitmap) {
+        int id = config.getInt("id");
+        String title = config.getString("title");
+        String body = config.getString("body");
+        String categoryId = config.getString("categoryId");
+        String categoryName = config.getString("categoryName");
+        String uri = config.getString("uri");
+        String action = config.getString("action");
+        String channel = config.hasKey("channel") ? config.getString("channel") : "Recommendation";
+        int importance = config.hasKey("importance") ? config.getInt("importance") : NotificationCompat.PRIORITY_HIGH;
+        int notificationVersion = config.hasKey("notificationVersion") ? config.getInt("notificationVersion") : 1;
+        boolean isGroupingNeeded = config.hasKey("isGroupingNeeded") ? config.getBoolean("isGroupingNeeded") : false;
+        int groupID = config.hasKey("groupID") ? config.getInt("groupID") : 0;
+        String notifType = config.hasKey("notifType") ? config.getString("notifType") : "";
+        boolean isPersonalized = config.hasKey("isPersonalized") ? config.getBoolean("isPersonalized") : false;
+
+        // Create UserPreferences from config using consolidated method
+        UserPreferences userPreferences = NotificationUtil.createUserPreferencesFromConfig(config);
+
+        // Use enhanced NotificationUtil with all native functionality
+        NotificationUtil.createNotificationWithCustomLayout(
+            reactContext,
+            id,
+            bitmap,
+            null, // blurrBitmap - can be enhanced later
+            title,
+            body,
+            categoryId,
+            categoryName,
+            uri,
+            action,
+            channel,
+            importance,
+            notificationVersion,
+            isGroupingNeeded,
+            groupID,
+            notifType,
+            isPersonalized,
+            userPreferences
+        );
+    }
+
     private void createNotificationWithBitmap(ReadableMap config, Bitmap bitmap) {
         int id = config.getInt("id");
         String title = config.getString("title");
@@ -322,61 +464,204 @@ public class NotificationManagerModule extends ReactContextBaseJavaModule {
         int groupID = config.hasKey("groupID") ? config.getInt("groupID") : 0;
         String notifType = config.hasKey("notifType") ? config.getString("notifType") : "";
         boolean isPersonalized = config.hasKey("isPersonalized") ? config.getBoolean("isPersonalized") : false;
+        int notificationVersion = config.hasKey("notificationVersion") ? config.getInt("notificationVersion") : 1;
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(reactContext, channel)
-            .setContentTitle(title)
-            .setContentText(body)
-            .setSmallIcon(getNotificationIcon())
-            .setLargeIcon(bitmap)
-            .setPriority(importance)
-            .setAutoCancel(true)
-            .setOnlyAlertOnce(false)
-            .setStyle(new NotificationCompat.BigPictureStyle()
-                .bigPicture(bitmap)
-                .bigLargeIcon((Bitmap) null)); // Hide large icon when expanded
+        // Create UserPreferences from config using consolidated method
+        UserPreferences userPreferences = NotificationUtil.createUserPreferencesFromConfig(config);
 
-        // Add timestamp for ordering
-        long currentTime = System.currentTimeMillis();
-        builder.getExtras().putLong(NOTIFICATION_TIME_EXTRA, currentTime);
-        builder.getExtras().putInt(NOTIFICATION_REFRESH_ID_EXTRA, id);
-
-        // Create intent for click handling
-        Intent intent = new Intent(reactContext, NotificationClickReceiver.class);
-        intent.putExtra(NOTIFICATION_ID_EXTRA, id);
-        intent.putExtra(URI_EXTRA, uri);
-        intent.putExtra(ACTION_EXTRA, action);
-        intent.putExtra(CATEGORY_ID_EXTRA, categoryId);
-        intent.putExtra(CATEGORY_NAME_EXTRA, categoryName);
-        intent.putExtra(IS_PERSONALIZED_EXTRA, isPersonalized);
-        
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(
-            reactContext, id, intent, 
-            PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0));
-        builder.setContentIntent(pendingIntent);
-
-        // Handle grouping if needed
-        if (isGroupingNeeded && groupID != 0) {
-            builder.setGroup(String.valueOf(groupID));
-            
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                createGroupSummaryNotification(groupID, channel, categoryName);
-            }
-        }
-
-        // Set notification category for high priority
-        if (importance >= NotificationCompat.PRIORITY_HIGH) {
-            builder.setCategory(NotificationCompat.CATEGORY_MESSAGE);
-        }
-
-        notificationManager.notify(id, builder.build());
+        // Use the enhanced NotificationUtil with all native functionality
+        NotificationUtil.createNotificationWithCustomLayout(
+            reactContext,
+            id,
+            bitmap,
+            null, // blurrBitmap - can be added later if needed
+            title,
+            body,
+            categoryId,
+            categoryName,
+            uri,
+            action,
+            channel,
+            importance,
+            notificationVersion,
+            isGroupingNeeded,
+            groupID,
+            notifType,
+            isPersonalized,
+            userPreferences
+        );
     }
 
+    // Removed duplicate methods - now using consolidated methods from NotificationUtil
     private int getNotificationIcon() {
-        // Try to get the app's icon, fallback to a default
+        // Use consolidated method from NotificationUtil
+        return NotificationUtil.getNotificationIcon(reactContext);
+    }
+
+    private void loadImageAndCreateQuizNotification(ReadableMap config, String imageUrl, Promise promise) {
+        Glide.with(reactContext)
+            .asBitmap()
+            .load(imageUrl)
+            .into(new CustomTarget<Bitmap>() {
+                @Override
+                public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                    try {
+                        int id = config.getInt("id");
+                        String title = config.getString("title");
+                        String body = config.getString("body");
+                        String categoryId = config.hasKey("categoryId") ? config.getString("categoryId") : "";
+                        String categoryName = config.hasKey("categoryName") ? config.getString("categoryName") : "";
+                        String uri = config.hasKey("uri") ? config.getString("uri") : "";
+                        String action = config.hasKey("action") ? config.getString("action") : "";
+                        String tag = config.hasKey("tag") ? config.getString("tag") : "";
+                        String channel = config.hasKey("channel") ? config.getString("channel") : "default";
+                        int importance = config.hasKey("importance") ? config.getInt("importance") : NotificationCompat.PRIORITY_HIGH;
+
+                        // Create blurred bitmap (simple implementation)
+                        Bitmap blurBitmap = createBlurredBitmap(resource);
+                        
+                        createQuizNotificationInternal(id, resource, blurBitmap, title, body, categoryId, categoryName,
+                            uri, action, tag, channel, importance);
+                        promise.resolve(true);
+                    } catch (Exception e) {
+                        promise.reject("CREATE_QUIZ_WITH_BITMAP_ERROR", e.getMessage());
+                    }
+                }
+
+                @Override
+                public void onLoadCleared(@Nullable Drawable placeholder) {
+                    // Fallback to quiz notification without image
+                    try {
+                        createQuizNotification(config, promise);
+                    } catch (Exception e) {
+                        promise.reject("QUIZ_FALLBACK_ERROR", e.getMessage());
+                    }
+                }
+            });
+    }
+
+    private void createQuizNotificationInternal(int id, Bitmap bitmap, Bitmap blurBitmap,
+                                              String title, String body, String categoryId, String categoryName,
+                                              String uri, String action, String tag, String channel, int importance) {
+        
+        // Create notification channels
+        NotificationUtil.createNotificationChannels(reactContext);
+
+        // Create intent
+        Intent intent = new Intent(reactContext, NotificationClickReceiver.class);
+        intent.putExtra("channel", channel);
+        intent.putExtra("importance", importance);
+        intent.putExtra(NOTIFICATION_ID_EXTRA, id);
+        intent.putExtra("is_source_notification", true);
+        intent.putExtra(CATEGORY_ID_EXTRA, categoryId);
+        intent.putExtra(CATEGORY_NAME_EXTRA, categoryName);
+        intent.putExtra(URI_EXTRA, uri);
+        intent.putExtra(ACTION_EXTRA, action);
+        intent.putExtra("tag", tag);
+        intent.setAction(action.isEmpty() ? "ACTION_PUSH" : action);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+            reactContext, id, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0)
+        );
+
+        // Get layout resource IDs for quiz layouts
+        int smallLayoutId = getLayoutId("notification_small_quiz");
+        int largeLayoutId = getLayoutId("notification_large_quiz");
+
+        // Create collapsed view (small)
+        android.widget.RemoteViews collapsedView = new android.widget.RemoteViews(reactContext.getPackageName(), smallLayoutId);
+        collapsedView.setTextViewText(getViewId("title"), parseHtmlTags(title));
+        collapsedView.setTextViewText(getViewId("body"), parseHtmlTags(body));
+        if (bitmap != null) {
+            collapsedView.setImageViewBitmap(getViewId("icon"), bitmap);
+        }
+        if (blurBitmap != null) {
+            collapsedView.setImageViewBitmap(getViewId("blurr_view"), blurBitmap);
+        }
+        bindNotificationHeader(collapsedView, categoryName);
+
+        // Create expanded view (large)
+        android.widget.RemoteViews expandedView = new android.widget.RemoteViews(reactContext.getPackageName(), largeLayoutId);
+        expandedView.setTextViewText(getViewId("title"), parseHtmlTags(title));
+        expandedView.setTextViewText(getViewId("body"), parseHtmlTags(body));
+        if (bitmap != null) {
+            expandedView.setImageViewBitmap(getViewId("thumbnail"), bitmap);
+        }
+        if (blurBitmap != null) {
+            expandedView.setImageViewBitmap(getViewId("blurr_view"), blurBitmap);
+        }
+        bindNotificationHeader(expandedView, categoryName);
+
+        // Build notification
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(reactContext, reactContext.getPackageName() + "_" + channel)
+            .setContentIntent(pendingIntent)
+            .setSmallIcon(getNotificationIcon())
+            .setColor(reactContext.getResources().getColor(android.R.color.holo_blue_bright))
+            .setDefaults(android.app.Notification.DEFAULT_SOUND)
+            .setOnlyAlertOnce(true)
+            .setAutoCancel(true)
+            .setCustomContentView(collapsedView)
+            .setCustomBigContentView(expandedView)
+            .setCustomHeadsUpContentView(collapsedView);
+
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) {
+            builder.setShowWhen(false);
+        }
+
+        // Add timestamp for ordering
+        android.app.Notification notification = builder.build();
+        notification.extras.putLong(NOTIFICATION_TIME_EXTRA, System.currentTimeMillis());
+        notification.extras.putInt(NOTIFICATION_REFRESH_ID_EXTRA, id);
+
+        notificationManager.notify(id, notification);
+    }
+
+    // Helper methods - using reflection to access private methods from NotificationUtil
+    private int getLayoutId(String layoutName) {
+        int resourceId = reactContext.getResources().getIdentifier(
+            layoutName, "layout", reactContext.getPackageName()
+        );
+        return resourceId != 0 ? resourceId : android.R.layout.simple_list_item_1;
+    }
+
+    private int getViewId(String viewName) {
+        int resourceId = reactContext.getResources().getIdentifier(
+            viewName, "id", reactContext.getPackageName()
+        );
+        return resourceId != 0 ? resourceId : android.R.id.text1;
+    }
+
+    private void bindNotificationHeader(android.widget.RemoteViews remoteViews, String categoryName) {
+        if (categoryName != null && !categoryName.isEmpty()) {
+            remoteViews.setViewVisibility(getViewId("category_container"), android.view.View.VISIBLE);
+            remoteViews.setTextViewText(getViewId("category_name"), categoryName);
+        } else {
+            remoteViews.setViewVisibility(getViewId("category_container"), android.view.View.GONE);
+        }
+        
+        remoteViews.setTextViewText(getViewId("time_stamp"), getCurrentTime());
+    }
+
+    private String parseHtmlTags(String text) {
+        if (text == null) return "";
+        // Simple HTML tag removal - NotificationUtil has more sophisticated parsing
+        return text.replaceAll("<[^>]*>", "").trim();
+    }
+
+    private String getCurrentTime() {
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault());
+        return sdf.format(new java.util.Date());
+    }
+
+    private Bitmap createBlurredBitmap(Bitmap bitmap) {
         try {
-            return reactContext.getApplicationInfo().icon;
+            // Simple blur implementation - in production you'd use RenderScript or similar
+            Bitmap blurred = bitmap.copy(bitmap.getConfig(), true);
+            // Apply blur effect here if needed
+            return blurred;
         } catch (Exception e) {
-            return android.R.drawable.ic_dialog_info;
+            return null;
         }
     }
 
@@ -385,4 +670,49 @@ public class NotificationManagerModule extends ReactContextBaseJavaModule {
             .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
             .emit(eventName, params);
     }
+
+    // Locale utility methods
+    private void setLocale(String languageCode) {
+        try {
+            Locale locale = new Locale(languageCode);
+            Locale.setDefault(locale);
+            
+            Resources resources = reactContext.getResources();
+            Configuration config = resources.getConfiguration();
+            
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                LocaleList localeList = new LocaleList(locale);
+                LocaleList.setDefault(localeList);
+                config.setLocales(localeList);
+            } else {
+                config.locale = locale;
+            }
+            
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                config.setLayoutDirection(locale);
+            }
+            
+            resources.updateConfiguration(config, resources.getDisplayMetrics());
+            
+            // Store the selected locale in SharedPreferences for persistence
+            SharedPreferences prefs = reactContext.getSharedPreferences("NotificationPrefs", Context.MODE_PRIVATE);
+            prefs.edit().putString("selected_language", languageCode).apply();
+            
+            // Also update preferred locale if it was set
+            String preferredLocale = prefs.getString("preferred_locale", "none");
+            if (!preferredLocale.equals("none")) {
+                prefs.edit().putString("preferred_locale", languageCode).apply();
+            }
+            
+            // Send event to JS about locale change
+            WritableMap params = Arguments.createMap();
+            params.putString("locale", languageCode);
+            sendEventToJS("onLocaleChanged", params);
+            
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to set locale: " + e.getMessage());
+        }
+    }
+    
+    
 }

@@ -1047,9 +1047,157 @@ export class NotificationUtil {
     }
     console.error("[NotificationUtil] Exception:", error);
   }
+
+  // ========== CONSOLIDATED UTILITY METHODS ==========
+  // These methods are now centralized in NotificationUtil to avoid duplication
+
+  /**
+   * Extract post ID from URI - consolidated utility method
+   */
+  public static getPostIdFromUri(uri: string): string {
+    if (!uri) return Constants.UNSET;
+    try {
+      const parts = uri.split("/");
+      return parts[parts.length - 1] || Constants.UNSET;
+    } catch (error) {
+      return Constants.UNSET;
+    }
+  }
+
+  /**
+   * Get stored integer array - consolidated utility method
+   */
+  public static async getStoredIntArray(key: string): Promise<number[]> {
+    if (Platform.OS === "android") {
+      return await NotificationUtilModule.getStoredIntArray(key);
+    }
+    return [];
+  }
+
+  /**
+   * Store integer array - consolidated utility method
+   */
+  public static async storeIntArray(
+    key: string,
+    array: number[]
+  ): Promise<void> {
+    if (Platform.OS === "android") {
+      await NotificationUtilModule.storeIntArray(key, array);
+    }
+  }
+
+  /**
+   * Validate notification ID - consolidated utility method
+   */
+  public static async isValidNotificationId(id: number): Promise<boolean> {
+    console.log(
+      `[NotificationUtil] isValidNotificationId() called with id = ${id}`
+    );
+
+    const prevNotifsList = await NotificationUtil.getStoredIntArray(
+      Constants.PREV_NOTIFS_LIST
+    );
+
+    if (prevNotifsList.includes(id)) {
+      return false;
+    } else {
+      if (id > 0) {
+        if (prevNotifsList.length === 20) {
+          prevNotifsList.shift();
+        }
+        prevNotifsList.push(id);
+        await NotificationUtil.storeIntArray(
+          Constants.PREV_NOTIFS_LIST,
+          prevNotifsList
+        );
+      }
+      return true;
+    }
+  }
+
+  /**
+   * Validate group ID - consolidated utility method
+   */
+  public static async isValidGroupId(channelId: string): Promise<boolean> {
+    if (!channelId) return true;
+
+    const id = parseInt(channelId);
+    console.log(`[NotificationUtil] isValidGroupId() called with id = ${id}`);
+
+    const prevNotifsGroupsList = await NotificationUtil.getStoredIntArray(
+      Constants.PREV_NOTIFS_SAMPLE_GROUPS_LIST
+    );
+
+    if (prevNotifsGroupsList.includes(id)) {
+      return false;
+    } else {
+      if (id > 0) {
+        if (prevNotifsGroupsList.length === 20) {
+          prevNotifsGroupsList.shift();
+        }
+        prevNotifsGroupsList.push(id);
+        await NotificationUtil.storeIntArray(
+          Constants.PREV_NOTIFS_SAMPLE_GROUPS_LIST,
+          prevNotifsGroupsList
+        );
+      }
+      return true;
+    }
+  }
+
+  /**
+   * Validate notification - consolidated utility method
+   */
+  public static async isNotificationValid(
+    notificationId: string,
+    sampleGroupId: string
+  ): Promise<boolean> {
+    const notifId = parseInt(notificationId);
+    const isNotificationIdValid = await NotificationUtil.isValidNotificationId(
+      notifId
+    );
+
+    if (isNotificationIdValid) {
+      return await NotificationUtil.isValidGroupId(sampleGroupId);
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * Get notification built bundle - consolidated utility method
+   */
+  public static async getNotificationBuiltBundle(
+    uri: string | null,
+    notificationId: string,
+    postId: string | null,
+    categoryId: string,
+    channel: string,
+    importance: number,
+    notifType: string
+  ): Promise<{ [key: string]: any }> {
+    // Check if notifications are enabled
+    const isNotificationEnabled =
+      Platform.OS === "android"
+        ? await NotificationUtilModule.areNotificationsEnabled()
+        : true;
+    const status = isNotificationEnabled ? "built" : "blocked";
+
+    return {
+      notification_id: notificationId,
+      category_id: categoryId,
+      status: status,
+      post_id: postId || Constants.UNSET,
+      channel: channel,
+      importance: importance,
+      notification_type: notifType,
+      uri: uri || "",
+      timestamp: Date.now(),
+    };
+  }
 }
 
-// Static methods for convenience
+// Static methods for convenience - consolidated from NotificationManager
 export const createNotification = async (
   id: number,
   title: string,
